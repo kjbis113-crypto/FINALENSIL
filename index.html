@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="description"
+      content="ENSIL — an experimental moving image gallery."
+    />
+    <title>ENSIL</title>
+    <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <svg class="filter-definitions" aria-hidden="true" focusable="false">
+      <filter id="remove-white" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+        <feColorMatrix
+          type="matrix"
+          values="
+            1  0  0  0  0
+            0  1  0  0  0
+            0  0  1  0  0
+           -1 -1 -1  3  0"
+        />
+      </filter>
+    </svg>
+
+    <main class="stage" aria-labelledby="page-title">
+      <h1 id="page-title" class="visually-hidden">ENSIL moving image gallery</h1>
+
+      <a class="brand" href="/" aria-label="ENSIL home">
+        <img src="/assets/ensil-logo.png" alt="ENSIL" />
+      </a>
+
+      <section class="gallery" aria-label="Featured moving images">
+        <article
+          class="media-card media-card--mouse"
+          tabindex="0"
+          data-node-id="0:4"
+          aria-label="Transparent computer mouse video"
+        >
+          <img class="media-fallback" src="/assets/mouse.png" alt="Transparent computer mouse with visible circuitry" />
+          <video
+            class="media-video"
+            data-src="/videos/mouse.mp4"
+            poster="/assets/mouse.png"
+            muted
+            loop
+            autoplay
+            playsinline
+            preload="metadata"
+            aria-hidden="true"
+          ></video>
+        </article>
+
+        <article
+          class="media-card media-card--cables"
+          tabindex="0"
+          data-node-id="0:6"
+          aria-label="Tangled cables video"
+        >
+          <img class="media-fallback" src="/assets/cables.png" alt="A dense knot of black and translucent cables" />
+          <video
+            class="media-video"
+            data-src="/videos/cables.mp4"
+            poster="/assets/cables.png"
+            muted
+            loop
+            autoplay
+            playsinline
+            preload="metadata"
+            aria-hidden="true"
+          ></video>
+        </article>
+
+        <article
+          class="media-card media-card--circuit"
+          tabindex="0"
+          data-node-id="0:7"
+          aria-label="Circuit board video"
+        >
+          <img class="media-fallback" src="/assets/circuit-board.png" alt="Dark green circuit board" />
+          <video
+            class="media-video"
+            data-src="/videos/circuit-board.mp4"
+            poster="/assets/circuit-board.png"
+            muted
+            loop
+            autoplay
+            playsinline
+            preload="metadata"
+            aria-hidden="true"
+          ></video>
+        </article>
+
+        <article
+          class="media-card media-card--bulb"
+          tabindex="0"
+          data-node-id="0:8"
+          aria-label="Glass light bulb video"
+        >
+          <img class="media-fallback" src="/assets/bulb.png" alt="Transparent glass light bulb" />
+          <video
+            class="media-video"
+            data-src="/videos/bulb.mp4"
+            poster="/assets/bulb.png"
+            muted
+            loop
+            autoplay
+            playsinline
+            preload="metadata"
+            aria-hidden="true"
+          ></video>
+        </article>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
