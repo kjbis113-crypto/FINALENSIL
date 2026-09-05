@@ -7,7 +7,7 @@ export const MODEL_CONFIGS = {
     particleDensity: 1,
     pointSize: 1,
     screenOffsetX: 0.09,
-    frameScale: 0.9,
+    frameScale: 0.75,
   },
   2: {
     path: '/models/NO2.obj',
@@ -37,7 +37,7 @@ export const MODEL_CONFIGS = {
     particleDensity: 1,
     pointSize: 1,
     screenOffsetX: 0.105,
-    frameScale: 0.56,
+    frameScale: 0.64,
   },
 };
 
