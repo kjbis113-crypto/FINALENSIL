@@ -68,6 +68,14 @@ link = openFieldLink('stage', {
     }
     if (msg.type === 'focus') world.setOptions({ selectedId: msg.id });
   },
+  // 목업이 스스로 움직이면 브릿지가 trigger 를 보낸다 — 그 개체가 프로젝터에서 흐트러진다
+  onHardware: (msg) => {
+    if (msg.type !== 'trigger') return;
+    const record = CREATURE_RECORDS[msg.unit - 1];
+    if (!record) return;
+    world.activate(record.id, Math.min(2, Math.max(0.6, msg.strength ?? 1)));
+    flashPulse();
+  },
   onPeerChange: (alive) => {
     consoleDot.dataset.alive = alive ? 'true' : 'false';
     consoleLabel.textContent = alive ? 'CONSOLE LINKED' : 'CONSOLE WAITING';

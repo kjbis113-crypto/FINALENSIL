@@ -114,7 +114,8 @@ function broadcast(obj) {
 
 /** 접속 중인 목업 목록 — 웹이 상태 표시에 쓴다 */
 function broadcastUnits() {
-  broadcast({ type: 'units', units: Array.from(units.values()) });
+  const polled = MOCKUPS.filter((m) => m.reachable).map((m) => ({ unit: m.unit, name: m.name, host: m.host }));
+  broadcast({ type: 'units', units: [...Array.from(units.values()), ...polled] });
 }
 
 wss.on('connection', (ws, req) => {
@@ -147,7 +148,13 @@ wss.on('connection', (ws, req) => {
       return;
     }
     if (msg.type === 'trigger') log(`trigger unit ${msg.unit} ${msg.action ?? ''} ${msg.intensity ?? ''}`);
-    if (msg.type === 'act') log(`act → unit ${msg.unit} ${msg.action ?? ''}`);
+    if (msg.type === 'act') {
+      // 웹이 브릿지를 거쳐 목업을 움직일 때 (브라우저가 직접 못 부를 때의 우회로)
+      const mockup = MOCKUPS[Number(msg.unit) - 1];
+      const level = Math.min(3, Math.max(1, Number(msg.level) || 2));
+      log(`act → unit ${msg.unit} n=${level}${mockup ? '' : ' (폴링 목록에 없음)'}`);
+      if (mockup) fetch(`http://${mockup.host}/api/click?n=${level}`).catch(() => {});
+    }
 
     // 보낸 쪽을 뺀 나머지 전부에게 그대로 중계
     for (const client of clients) if (client !== ws && client.readyState === 1) client.send(text);
@@ -156,6 +163,73 @@ wss.on('connection', (ws, req) => {
 
 wss.on('listening', () => log(`ws://0.0.0.0:${WS_PORT} 대기 중`));
 
+// ── 목업 폴링 ────────────────────────────────────────────────
+// 목업 셋은 허브 와이파이 ARCHIVE 에 고정 IP 로 붙은 HTTP 서버라 스스로 알리지 않는다.
+// /api/state 의 id 는 사건(버튼·PIR·마이크·웹 클릭)마다 1씩 오른다. 그게 바뀌면 새 사건이고,
+// from 이 'web' 이면 우리가 /api/click 으로 시킨 것이니 되울리지 않는다.
+//   node index.js --mockups 192.168.4.11,192.168.4.12,192.168.4.13   (기본값, 순서 = unit 1·2·3)
+//   node index.js --no-mockups                                        (하드웨어 없는 날)
+const MOCKUP_POLL_MS = 500;
+const MOCKUP_TIMEOUT_MS = 1200;
+const STRENGTH_BY_MODE = { 1: 0.6, 2: 1, 3: 1.6 }; // 1 살짝 · 2 보통 · 3 크게
+const MOCKUPS = flag('--no-mockups') || DEMO
+  ? []
+  : (value('--mockups', process.env.ENSIL_MOCKUPS) ?? '192.168.4.11,192.168.4.12,192.168.4.13')
+      .split(',')
+      .map((host, index) => ({ unit: index + 1, host: host.trim(), name: '', lastId: null, reachable: false, misses: 0, busy: false }));
+
+async function pollMockup(mockup) {
+  if (mockup.busy) return;
+  mockup.busy = true;
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), MOCKUP_TIMEOUT_MS);
+  try {
+    const response = await fetch(`http://${mockup.host}/api/state`, { signal: abort.signal });
+    const state = await response.json();
+    mockup.misses = 0;
+    if (!mockup.reachable) {
+      mockup.reachable = true;
+      mockup.name = state.name ?? '';
+      log(`목업 unit ${mockup.unit} ${mockup.name} 접속 (${mockup.host})`);
+      broadcastUnits();
+    }
+    const id = Number(state.id);
+    if (mockup.lastId === null) {
+      mockup.lastId = id; // 첫 응답 — 브릿지가 뜨기 전의 사건을 되살리지 않는다
+      return;
+    }
+    if (id !== mockup.lastId) {
+      mockup.lastId = id;
+      if (state.from === 'web') return;
+      const trigger = {
+        type: 'trigger',
+        unit: mockup.unit,
+        name: mockup.name,
+        from: state.from ?? '',
+        mode: Number(state.mode) || 0,
+        strength: STRENGTH_BY_MODE[state.mode] ?? 1,
+        action: state.pattern ?? state.sound ?? '',
+      };
+      log(`trigger unit ${trigger.unit} from=${trigger.from} mode=${trigger.mode} ${trigger.action}`);
+      broadcast(trigger);
+    }
+  } catch {
+    if (mockup.reachable && ++mockup.misses > 3) {
+      mockup.reachable = false;
+      log(`목업 unit ${mockup.unit} 끊김`);
+      broadcastUnits();
+    }
+  } finally {
+    clearTimeout(timer);
+    mockup.busy = false;
+  }
+}
+
+if (MOCKUPS.length) {
+  log(`목업 폴링: ${MOCKUPS.map((m) => `unit ${m.unit} → ${m.host}`).join(', ')}`);
+  setInterval(() => MOCKUPS.forEach(pollMockup), MOCKUP_POLL_MS);
+}
+
 // ── 데모 모드 — 하드웨어 없이 개발·리허설 ────────────────────
 if (DEMO) {
   log('데모 모드 — 15초마다 가짜 trigger (unit 1→2→3)');
@@ -163,6 +237,6 @@ if (DEMO) {
   setInterval(() => {
     unit = (unit % 3) + 1;
     log(`demo trigger unit ${unit}`);
-    broadcast({ type: 'trigger', unit, action: 'demo', intensity: 0.8 });
+    broadcast({ type: 'trigger', unit, name: 'demo', from: 'demo', mode: 2, strength: 1, action: 'demo' });
   }, 15_000);
 }

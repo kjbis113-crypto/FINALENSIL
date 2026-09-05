@@ -68,7 +68,7 @@ function openBroadcast(onEnvelope) {
 }
 
 /** 브릿지 릴레이 — 끊기면 조용히 재접속, 실패해도 화면은 정상 */
-function openRelay(url, onEnvelope) {
+function openRelay(url, onEnvelope, onRaw) {
   let socket = null;
   let timer = null;
   let disposed = false;
@@ -96,6 +96,9 @@ function openRelay(url, onEnvelope) {
         const data = JSON.parse(event.data);
         if (data?.type === 'field' && data.msg && typeof data.role === 'string') {
           onEnvelope({ role: data.role, msg: data.msg });
+        } else if (data && typeof data.type === 'string') {
+          // 봉투 없는 메시지 — 브릿지가 목업에서 만들어 보내는 trigger / units
+          onRaw?.(data);
         }
       } catch {
         /* JSON 아닌 메시지 무시 */
@@ -109,6 +112,9 @@ function openRelay(url, onEnvelope) {
     send: (envelope) => {
       if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'field', ...envelope }));
     },
+    sendRaw: (message) => {
+      if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+    },
     close: () => {
       disposed = true;
       if (timer !== null) window.clearTimeout(timer);
@@ -121,7 +127,12 @@ function openRelay(url, onEnvelope) {
  * @param {'panel'|'stage'} role
  * @param {{ onMessage?: (msg: object) => void, onPeerChange?: (alive: boolean) => void }} handlers
  */
-export function openFieldLink(role, { onMessage, onPeerChange } = {}) {
+/**
+ * @param {'panel'|'stage'} role
+ * @param {{ onMessage?: (msg: object) => void, onPeerChange?: (alive: boolean) => void, onHardware?: (msg: object) => void }} handlers
+ *   onHardware 는 릴레이로만 온다 — 브릿지가 목업을 폴링해 만드는 trigger / units.
+ */
+export function openFieldLink(role, { onMessage, onPeerChange, onHardware } = {}) {
   const other = role === 'panel' ? 'stage' : 'panel';
   let lastSeen = 0;
   let peerAlive = false;
@@ -139,7 +150,8 @@ export function openFieldLink(role, { onMessage, onPeerChange } = {}) {
     if (envelope.msg.type !== 'hello') onMessage?.(envelope.msg);
   };
 
-  const transports = [openBroadcast(handle), RELAY_URL ? openRelay(RELAY_URL, handle) : null].filter(Boolean);
+  const relay = RELAY_URL ? openRelay(RELAY_URL, handle, (message) => onHardware?.(message)) : null;
+  const transports = [openBroadcast(handle), relay].filter(Boolean);
 
   const hello = () => transports.forEach((transport) => transport.send({ role, msg: { type: 'hello', role } }));
   hello();
@@ -154,6 +166,8 @@ export function openFieldLink(role, { onMessage, onPeerChange } = {}) {
 
   return {
     send: (msg) => transports.forEach((transport) => transport.send({ role, msg })),
+    /** 브릿지(그리고 그 너머 목업)로 가는 봉투 없는 메시지 — 릴레이가 없으면 조용히 버린다 */
+    sendHardware: (message) => relay?.sendRaw(message),
     close: () => {
       window.clearInterval(beat);
       transports.forEach((transport) => transport.close());
