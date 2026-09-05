@@ -2,6 +2,9 @@ import { Experience } from './experience/Experience.js';
 import { revealEncryptedText } from './components/ui/encrypted-text.js';
 import { mountDither } from './dither-mount.jsx';
 import { installStageShortcut } from './stage-window.js';
+import { installInputGuard } from './input-guard.js';
+
+installInputGuard();
 
 const sceneElement = document.querySelector('#scene');
 mountDither(document.querySelector('#dither-background'), {
@@ -13,13 +16,19 @@ const infoLink = document.querySelector('.study-number-link');
 const headerLink = document.querySelector('.study-info-link');
 const numberLabel = infoLink.querySelector('.object-number');
 const objectId = Math.min(4, Math.max(1, Number(new URLSearchParams(window.location.search).get('id')) || 1));
+const numberText = objectId === 1 ? 'NO.1' : `NO. ${objectId}`;
+
+document.querySelector('.study-frame').style.setProperty(
+  '--number-left',
+  `${((objectId === 1 ? 281 : 278) / 1920) * 100}%`,
+);
 
 for (const link of [infoLink, headerLink]) {
   link.href = `/info.html?id=${objectId}`;
 }
 
 revealEncryptedText(numberLabel, {
-  text: `NO. ${objectId}`,
+  text: numberText,
   revealDelayMs: 50,
   startDelayMs: 180,
   maxDurationMs: 1200,

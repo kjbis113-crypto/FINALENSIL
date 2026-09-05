@@ -10,6 +10,7 @@ uniform vec3 uPointerPosition;
 uniform vec3 uPointerVelocity;
 uniform float uPointerActive;
 uniform float uPointerDown;
+uniform float uPointerHold;
 uniform float uInteractionRadius;
 uniform float uInteractionStrength;
 uniform float uCurlStrength;
@@ -99,11 +100,15 @@ void main() {
 
   vec3 timeOffset = vec3(0.0, uTime * uCurlSpeed, -uTime * uCurlSpeed * 0.61);
   float boundaryNoise = valueNoise(restPosition * 2.35 + timeOffset * 0.25 + seed * 7.0);
-  float irregularRadius = uInteractionRadius * (0.78 + boundaryNoise * 0.23);
+  float irregularRadius = uInteractionRadius * (0.78 + boundaryNoise * 0.23) * (1.0 + uPointerHold * 0.32);
   float pointerDistance = distance(position, uPointerPosition);
   float localField = (1.0 - smoothstep(irregularRadius * 0.18, irregularRadius, pointerDistance)) * uPointerActive;
   float pointerSpeed = clamp(length(uPointerVelocity) * 0.45, 0.0, 1.6);
-  float releaseTarget = localField * clamp(0.58 + pointerSpeed * 0.48 + uPointerDown * 0.5, 0.0, 1.0);
+  float releaseTarget = localField * clamp(
+    0.58 + pointerSpeed * 0.48 + uPointerDown * 0.25 + uPointerHold * 0.58,
+    0.0,
+    1.0
+  );
 
   release = max(release * exp(-dt * 0.22), releaseTarget);
 
@@ -121,10 +126,11 @@ void main() {
   float restLock = pow(1.0 - release, 2.35);
   vec3 restForce = (restPosition - position) * uReturnStrength * mix(1.0, 0.035, freeAmount);
   vec3 tangent = normalize(flow - surfaceNormal * dot(flow, surfaceNormal) + vec3(0.0001));
-  float holdEnergy = 1.0 + uPointerDown * 1.6;
+  float holdEnergy = 1.0 + uPointerDown * 1.1 + uPointerHold * 3.2;
   vec3 tangentialForce = tangent * uTangentStrength * localField * (0.35 + seed * 0.8) * holdEnergy;
   vec3 advectiveForce = uPointerVelocity * uVelocityInfluence * localField * (0.25 + pointerSpeed) * holdEnergy;
   vec3 curlForce = flow * uCurlStrength * (0.012 + freeAmount * 1.22) * (0.55 + seed * 0.8);
+  curlForce *= 1.0 + localField * uPointerHold * 1.8;
   vec3 surfaceShear = cross(surfaceNormal, normalize(uPointerVelocity + flow * 0.2 + vec3(0.0001)));
   surfaceShear *= localField * uInteractionStrength * (0.18 + seed * 0.45) * holdEnergy;
   vec3 microMotion = microNoise * (0.0015 + 0.018 * localField) * (0.3 + seed);

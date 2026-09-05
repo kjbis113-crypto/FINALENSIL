@@ -63,6 +63,7 @@ export class Experience {
     this.modelLoader = new ModelLoader(this.modelConfig, (progress, label) => this.setProgress(progress, label));
     this.model = await this.modelLoader.load();
     this.camera.frame(this.model.bounds);
+    this.updateArtLayout();
 
     const surfaceData = await this.modelLoader.sampleSurface(this.model, this.quality.textureSize);
     this.surfaceData = surfaceData;
@@ -214,6 +215,8 @@ export class Experience {
       this.pointer.update(delta, this.parameters.showInteractionSphere);
       this.container.dataset.pointerActive = this.pointer.active.toFixed(3);
       this.container.dataset.pointerSpeed = this.pointer.velocity.length().toFixed(3);
+      this.container.dataset.pointerHold = this.pointer.hold.toFixed(3);
+      this.container.dataset.objectZoom = this.pointer.zoom.toFixed(3);
       this.container.dataset.disintegrating = this.pointer.active > 0.08 ? 'true' : 'false';
       this.simulation.update(elapsed, delta, this.pointer);
       this.particleRenderer.update(elapsed, Math.min(window.devicePixelRatio, this.quality.pixelRatio));
@@ -225,6 +228,7 @@ export class Experience {
       const pointerPitch = this.pointer.down ? 0 : (this.pointer.ndc.y || 0) * THREE.MathUtils.degToRad(0.45);
       this.artRoot.rotation.y = this.baseRotation[1] + this.pointer.rotation.y + subtleYaw + pointerYaw;
       this.artRoot.rotation.x = this.baseRotation[0] + this.pointer.rotation.x + subtlePitch + pointerPitch;
+      this.artRoot.scale.setScalar(this.pointer.zoom);
       this.container.dataset.rotationX = this.pointer.rotation.x.toFixed(3);
       this.container.dataset.rotationY = this.pointer.rotation.y.toFixed(3);
 
@@ -238,8 +242,22 @@ export class Experience {
 
   resize = () => {
     this.camera.resize();
+    this.updateArtLayout();
     this.renderer.setSize();
   };
+
+  updateArtLayout() {
+    const camera = this.camera.instance;
+    const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+    const visibleHeight = 2 * Math.tan(verticalFov / 2) * camera.position.z;
+    const visibleWidth = visibleHeight * camera.aspect;
+    const responsiveOffset = window.innerWidth < 720
+      ? Math.min(this.modelConfig.screenOffsetX, 0.1)
+      : this.modelConfig.screenOffsetX;
+
+    this.artRoot.position.x = visibleWidth * responsiveOffset;
+    this.container.dataset.layoutOffsetX = responsiveOffset.toFixed(3);
+  }
 
   showError(error) {
     console.error(error);

@@ -3,18 +3,22 @@
 /* ================================================================
    Archive entry (info.html)
 
-   Every specimen shares one grid: a square media frame on the left
-   with equal margins above and below, and a text column on the
-   right that starts at the same y and always clears the bottom
-   gutter. Per specimen the page only varies the crop of the cutout.
+   Keeps the arrangement from the Figma pass — number top left, the
+   three sections stacked down the left column, the specimen filling
+   the right — but hangs it off the design system instead of
+   per-creature Figma coordinates, so the gutters match the rest of
+   the site and every specimen lands on the same grid.
    ================================================================ */
 
 .info-page {
-  --media-inset-block: var(--space-6);        /*  70.1px */
-  --media-left: calc(var(--u) * 20.3);        /* 389.8px */
-  --media-size: calc(var(--u) * 48.96);       /* 940.0px */
-  --text-top: calc(var(--u) * 7.8);           /* 149.8px */
-  --text-width: calc(var(--u) * 23);          /* 441.6px */
+  /* Text column runs from the shared gutter, like every other page. */
+  --archive-column: calc(var(--u) * 27);        /*  518.4px */
+  --archive-number-top: calc(var(--u) * 7.2);   /*  138.2px */
+  --archive-text-top: calc(var(--u) * 19.84);   /*  381.0px */
+  /* One media frame for all four specimens, equal margin above and below. */
+  --archive-media-inset: calc(var(--u) * 3.65); /*   70.1px */
+  --archive-media-width: calc(var(--u) * 56);   /* 1075.2px */
+
   --specimen-scale: 100%;
   --specimen-color-opacity: 1;
 
@@ -27,14 +31,36 @@
   opacity: 1;
 }
 
-/* --- specimen --------------------------------------------------- */
+/* Exhibition kiosk — nothing here is meant to be selected or dragged. */
+.info-page,
+.info-page * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.info-page img,
+.info-page a {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* --- specimen number -------------------------------------------- */
+.creature-number-link {
+  position: absolute;
+  z-index: 4;
+  top: var(--archive-number-top);
+  bottom: auto;
+  left: var(--number-left);
+}
+
+/* --- specimen ---------------------------------------------------- */
 .specimen-media {
   position: absolute;
   z-index: 1;
-  top: var(--media-inset-block);
-  left: var(--media-left);
-  width: var(--media-size);
-  height: var(--media-size);
+  top: var(--archive-media-inset);
+  right: var(--frame-gutter);
+  width: var(--archive-media-width);
+  height: calc(100% - var(--archive-media-inset) * 2);
   margin: 0;
   overflow: hidden;
   background: transparent;
@@ -86,20 +112,18 @@
 }
 
 /* --- text column ------------------------------------------------
-   Starts at the same y for every specimen and flows downwards. The
-   longest entry (NO. 3) needs about 735px of the 877px between
-   --text-top and the bottom gutter, so nothing is ever clipped and
-   the sections never have to compress. */
+   Flows downwards from one y for every specimen, so the sections
+   cannot drift apart between entries or run past the bottom gutter. */
 .fact-column {
   position: absolute;
   z-index: 4;
-  top: var(--text-top);
-  right: var(--frame-gutter);
+  top: var(--archive-text-top);
+  left: var(--frame-gutter);
   display: flex;
-  width: var(--text-width);
+  width: var(--archive-column);
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-6);
+  gap: var(--space-5);
   pointer-events: none;
 }
 
@@ -148,14 +172,14 @@
   color: inherit;
   font-family: var(--font-body);
   font-size: var(--type-body);
-  font-weight: 500;
+  font-weight: 300;
   line-height: var(--leading-body);
   letter-spacing: var(--tracking-text);
   white-space: pre-wrap;
   word-break: keep-all;
 }
 
-/* --- exit ------------------------------------------------------- */
+/* --- exit -------------------------------------------------------- */
 .is-leaving .info-page {
   filter: blur(5px);
   opacity: 0;
