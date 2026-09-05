@@ -23,6 +23,12 @@ export type HabitatWorldOptions = {
   /** 스테이지(프로젝터) — 1인칭 진입이 없을 때 카메라가 필드 중심을 천천히 돈다 */
   ambient?: boolean;
   /**
+   * 1인칭 진입을 허용할지. 캔버스를 클릭하면 포인터 락이 걸리며 1인칭이 되는데,
+   * 프로젝터(스테이지)는 전체화면 진입도 클릭으로 하므로 같이 걸려버린다.
+   * false 면 컨트롤러를 아예 만들지 않아 ambient 회전이 계속 돈다.
+   */
+  firstPerson?: boolean;
+  /**
    * 절차적 지형 위에 폐허 GLB(ensil-green-circuit-ruins)를 덮을지.
    * 이 모델이 로드되면 setFieldFallbackVisible(false) 로 절차적 지형·등고선·
    * 신호선이 전부 숨겨진다. false 면 절차적 지형만 남는다.
@@ -222,7 +228,7 @@ export class HabitatWorld {
     this.controls.addEventListener('end', this.handleControlEnd);
 
     this.setupCamera();
-    if (options.mode === 'field') {
+    if (options.mode === 'field' && options.firstPerson !== false) {
       this.fieldController = new FirstPersonFieldController({
         camera: this.camera,
         canvas: this.renderer.domElement,

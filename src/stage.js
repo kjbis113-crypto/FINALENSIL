@@ -30,6 +30,8 @@ const world = new HabitatWorld({
   records: CREATURE_RECORDS,
   mode: 'field',
   ambient: true,
+  // 전체화면 진입도 클릭이라 1인칭이 같이 걸린다 — 프로젝터는 계속 천천히 돌기만 한다
+  firstPerson: false,
   // 폐허 GLB 는 로드되는 순간 절차적 지형을 전부 숨기고 그 위를 덮는다 — 쓰지 않는다
   referenceLandscape: false,
   selectedId: null,
