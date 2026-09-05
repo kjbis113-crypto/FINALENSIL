@@ -15,6 +15,7 @@ import {
 } from './CommonFieldLandscape';
 import { beginEvent, chooseWeightedEvent, eventProgress, loadWorldState, saveWorldState, seededUnit } from './worldState';
 import type { HabitatBuildContext, HabitatSnapshot, HabitatWorldState } from './types';
+import { createParticleCreature } from './particle-creature.js';
 
 export type HabitatWorldOptions = {
   mount: HTMLElement;
@@ -34,6 +35,11 @@ export type HabitatWorldOptions = {
    * 신호선이 전부 숨겨진다. false 면 절차적 지형만 남는다.
    */
   referenceLandscape?: boolean;
+  /**
+   * 개체를 무엇으로 그릴지. 'particles' 면 GLB 대신 아카이브와 같은 GPU 포인트클라우드
+   * (src/field/particle-creature.js). 기본은 GLB.
+   */
+  creatureRenderer?: 'glb' | 'particles';
   selectedId?: string | null;
   observation?: boolean;
   paused?: boolean;
@@ -64,6 +70,15 @@ type HabitatRuntime = {
   emergence: number;
   enteredAt: number;
   loaded: boolean;
+  particles: ParticleCreatureHandle | null;
+};
+
+/** src/field/particle-creature.js 가 돌려주는 것 */
+type ParticleCreatureHandle = {
+  root: THREE.Object3D;
+  particleCount: number;
+  update(time: number, dt: number, drive: number): void;
+  dispose(): void;
 };
 
 type FieldReferenceLandscape = {
@@ -351,6 +366,7 @@ export class HabitatWorld {
         emergence: this.options.mode === 'field' ? 1 : 0,
         enteredAt: performance.now(),
         loaded: false,
+        particles: null,
       };
       this.runtimes.set(record.id, runtime);
       this.loadCreature(runtime);
@@ -484,6 +500,10 @@ export class HabitatWorld {
   }
 
   private loadCreature(runtime: HabitatRuntime) {
+    if (this.options.creatureRenderer === 'particles') {
+      void this.loadParticleCreature(runtime);
+      return;
+    }
     if (!runtime.record.modelUrl) {
       this.completeLoad(runtime);
       return;
@@ -527,6 +547,38 @@ export class HabitatWorld {
       undefined,
       () => this.completeLoad(runtime),
     ));
+  }
+
+  /**
+   * GLB 대신 포인트클라우드. 도감 순번(records 의 순서)이 곧 OBJ 번호다.
+   * 실패하면 절차적 플레이스홀더를 그대로 두고 로드는 끝난 것으로 친다 — 필드는 계속 돌아야 한다.
+   */
+  private async loadParticleCreature(runtime: HabitatRuntime) {
+    const fieldSize: Record<string, number> = { 'eo-002': 6.2, 'eo-003': 5.6, 'eo-004': 4.8, 'eo-005': 5.4 };
+    const modelIndex = this.options.records.indexOf(runtime.record) + 1;
+    try {
+      const creature = await createParticleCreature({
+        renderer: this.renderer,
+        modelIndex,
+        size: fieldSize[runtime.record.id] ?? 5.5,
+        pixelRatio: Math.min(window.devicePixelRatio, this.mobile ? 1.15 : 1.5),
+      });
+      if (this.disposed) {
+        creature.dispose();
+        return;
+      }
+      creature.root.traverse((child) => { child.userData.creatureId = runtime.record.id; });
+      runtime.creatureBody.remove(runtime.placeholder);
+      this.disposeObject(runtime.placeholder);
+      runtime.creatureBody.add(creature.root);
+      runtime.particles = creature;
+      this.renderer.domElement.dataset.particleCreatures = String(
+        Array.from(this.runtimes.values()).filter((entry) => entry.particles).length,
+      );
+    } catch (error) {
+      console.warn(`ENSIL point cloud for ${runtime.record.id} could not be built; keeping the placeholder.`, error);
+    }
+    this.completeLoad(runtime);
   }
 
   private completeLoad(runtime: HabitatRuntime) {
@@ -879,6 +931,8 @@ export class HabitatWorld {
       this.runtimes.forEach((runtime) => {
         this.stepWorld(runtime, this.reducedMotion ? dt * 0.35 : dt);
         this.updateCreature(runtime, dt);
+        // 호버(pointerInfluence)와 활성(activity: pulse·목업 trigger) 중 센 쪽이 파티클을 흔든다
+        runtime.particles?.update(now / 1000, dt, Math.max(runtime.pointerInfluence * 0.55, runtime.state.activity));
         updateHabitatSystems(runtime.context, runtime.systems, runtime.influencePosition, Boolean(this.options.observation));
         this.applyEmergence(runtime, now);
 
@@ -974,7 +1028,11 @@ export class HabitatWorld {
     this.controls.dispose();
     this.fieldController?.dispose();
     this.fieldController = null;
-    this.runtimes.forEach((runtime) => saveWorldState(runtime.record.id, runtime.state));
+    this.runtimes.forEach((runtime) => {
+      saveWorldState(runtime.record.id, runtime.state);
+      runtime.particles?.dispose(); // FBO 와 데이터 텍스처는 씬 순회로는 안 잡힌다
+      runtime.particles = null;
+    });
     this.disposeObject(this.scene);
     this.renderer.renderLists.dispose();
     this.renderer.dispose();

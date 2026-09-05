@@ -34,6 +34,8 @@ const world = new HabitatWorld({
   firstPerson: false,
   // 폐허 GLB 는 로드되는 순간 절차적 지형을 전부 숨기고 그 위를 덮는다 — 쓰지 않는다
   referenceLandscape: false,
+  // 개체는 아카이브와 같은 GPU 포인트클라우드로
+  creatureRenderer: 'particles',
   selectedId: null,
   observation: false,
   paused: false,
