@@ -22,12 +22,19 @@ for (const link of [infoLink, headerLink]) {
   link.href = `/info.html?id=${objectId}`;
 }
 
-revealEncryptedText(numberLabel, {
-  text: numberText,
-  revealDelayMs: 50,
-  startDelayMs: 180,
-  maxDurationMs: 1200,
-});
+// Coming back from the archive entry the number is already on screen in the
+// same place, so it just stays. It only scrambles in on a fresh arrival.
+const fromArchive = /\/info\.html/.test(document.referrer);
+if (fromArchive) {
+  numberLabel.textContent = numberText;
+} else {
+  revealEncryptedText(numberLabel, {
+    text: numberText,
+    revealDelayMs: 50,
+    startDelayMs: 180,
+    maxDurationMs: 1200,
+  });
+}
 
 revealEncryptedText(headerLink, {
   text: 'READ INFORMATION',

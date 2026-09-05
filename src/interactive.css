@@ -49,15 +49,12 @@
     transform 420ms var(--ease-sweep);
 }
 
-/* --- exit -------------------------------------------------------- */
-.is-leaving .study-number-link {
-  filter: blur(8px);
-  opacity: 0;
-  transform: translateX(7vw) skewX(-9deg);
-}
-
+/* --- exit --------------------------------------------------------
+   The archive entry carries the same number and the same header in the
+   same place, so neither moves. Only the field and the link that is
+   about to change fade out. */
 .is-leaving .scene,
-.is-leaving .ensil-header {
+.is-leaving .study-info-link {
   opacity: 0;
   transition: opacity 500ms ease;
 }

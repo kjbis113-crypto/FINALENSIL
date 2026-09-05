@@ -23,12 +23,6 @@
   --specimen-color-opacity: 1;
 
   background: transparent;
-  opacity: 0;
-  transition: opacity var(--dur-3) var(--ease-sweep);
-}
-
-.info-page.is-visible {
-  opacity: 1;
 }
 
 /* Exhibition kiosk — nothing here is meant to be selected or dragged. */
@@ -125,6 +119,14 @@
   align-items: stretch;
   gap: var(--space-5);
   pointer-events: none;
+  /* The number and the header are already on screen from the study page;
+     only the text that is new here fades in, under the scramble. */
+  opacity: 0;
+  transition: opacity 700ms 140ms ease;
+}
+
+.is-visible .fact-column {
+  opacity: 1;
 }
 
 .fact {
@@ -179,13 +181,12 @@
   word-break: keep-all;
 }
 
-/* --- exit -------------------------------------------------------- */
-.is-leaving .info-page {
-  filter: blur(5px);
+/* --- exit --------------------------------------------------------
+   Leaving keeps the number and the header where they are — the study
+   page carries the same ones — and fades only what is about to change. */
+.is-leaving .fact-column,
+.is-leaving .specimen-media,
+.is-leaving .back-to-interaction {
   opacity: 0;
-  transform: translateX(-2.5vw);
-  transition:
-    filter 480ms ease,
-    opacity 480ms ease,
-    transform 480ms var(--ease-sweep);
+  transition: opacity 360ms ease;
 }

@@ -143,8 +143,9 @@ mountDither(document.querySelector('#dither-background'));
 
 requestAnimationFrame(() => {
   page.classList.add('is-visible');
+  // The number is already on screen from the study page, in the same place —
+  // it stays put. Only the text that is new here scrambles in.
   const encryptedElements = [
-    numberElement,
     backLink,
     ...document.querySelectorAll('.fact h2, .fact p'),
   ];
