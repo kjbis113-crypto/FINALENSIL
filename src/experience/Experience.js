@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import GUI from 'lil-gui';
-import { MODEL_CONFIGS, QUALITY_LEVELS, DEFAULT_PARAMETERS, selectQuality } from '../config.js';
+import {
+  MODEL_CONFIGS,
+  QUALITY_LEVELS,
+  QUALITY_ORDER,
+  DEFAULT_PARAMETERS,
+  selectQuality,
+} from '../config.js';
 import { Camera } from './Camera.js';
 import { Renderer } from './Renderer.js';
 import { ModelLoader } from '../loaders/ModelLoader.js';
@@ -13,6 +19,7 @@ export class Experience {
   constructor(container) {
     this.container = container;
     this.params = new URLSearchParams(window.location.search);
+    this.explicitQuality = this.params.has('quality');
     this.objectId = THREE.MathUtils.clamp(Number.parseInt(this.params.get('id') ?? '1', 10) || 1, 1, 4);
     this.modelConfig = MODEL_CONFIGS[this.objectId];
     this.qualityName = selectQuality();
@@ -66,14 +73,21 @@ export class Experience {
       this.simulation,
       this.parameters,
       Math.min(window.devicePixelRatio, this.quality.pixelRatio),
+      this.quality.particleLayers,
     );
-    this.trails = new ParticleTrails(
-      this.renderer.instance,
-      this.simulation,
-      surfaceData,
-      this.quality.trailParticles,
-      this.parameters,
-    );
+    this.trails = this.quality.trailParticles > 0
+      ? new ParticleTrails(
+          this.renderer.instance,
+          this.simulation,
+          surfaceData,
+          this.quality.trailParticles,
+          this.parameters,
+          this.quality.trailCaptureInterval,
+        )
+      : {
+          lines: new THREE.Group(),
+          update() {},
+        };
 
     this.artRoot.add(this.model.interactionRoot, this.particleRenderer.root, this.trails.lines);
     this.artRoot.rotation.fromArray(this.baseRotation);
@@ -154,14 +168,32 @@ export class Experience {
   }
 
   monitorPerformance(delta) {
+    if (document.visibilityState !== 'visible') return;
     this.performanceFrames += 1;
     this.performanceTime += delta;
-    if (this.performanceTime < 5 || this.reducedRenderCount) return;
+    if (this.performanceTime < 4 || this.reducedRenderCount) return;
 
     const fps = this.performanceFrames / this.performanceTime;
     this.container.dataset.measuredFps = fps.toFixed(1);
-    if (fps < 43 && this.surfaceData.particleCount > 65536) {
-      const adaptiveCount = Math.max(65536, Math.floor(this.surfaceData.particleCount * 0.62));
+    if (fps < 48) {
+      const qualityIndex = QUALITY_ORDER.indexOf(this.qualityName);
+
+      if (!this.explicitQuality && qualityIndex > 0) {
+        const nextQuality = QUALITY_ORDER[qualityIndex - 1];
+        this.container.dataset.adaptiveQuality = nextQuality;
+        try {
+          window.sessionStorage.setItem('ensil-adaptive-quality', nextQuality);
+        } catch {
+          // Continue with an in-place reduction when storage is unavailable.
+        }
+        window.location.reload();
+        return;
+      }
+
+      const adaptiveCount = Math.max(
+        32768,
+        Math.floor(this.surfaceData.particleCount * 0.72),
+      );
       this.particleRenderer.geometry.setDrawRange(0, adaptiveCount);
       this.parameters.disableTrails = true;
       this.parameters.disableBloom = true;

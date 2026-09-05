@@ -7,13 +7,21 @@ import trailsFragmentShader from '../shaders/trails.frag.glsl?raw';
 const HISTORY_LENGTH = 8;
 
 export class ParticleTrails {
-  constructor(renderer, simulation, surfaceData, trailParticleCount, parameters) {
+  constructor(
+    renderer,
+    simulation,
+    surfaceData,
+    trailParticleCount,
+    parameters,
+    captureInterval = 2,
+  ) {
     this.renderer = renderer;
     this.simulation = simulation;
     this.parameters = parameters;
     this.size = surfaceData.textureSize;
     this.particleCount = surfaceData.particleCount;
     this.trailParticleCount = Math.min(trailParticleCount, this.particleCount);
+    this.captureInterval = Math.max(2, captureInterval);
     this.writeIndex = 0;
 
     this.copyScene = new THREE.Scene();
@@ -130,7 +138,7 @@ export class ParticleTrails {
   }
 
   update(frame) {
-    if (frame % 2 === 0) this.capture();
+    if (frame % this.captureInterval === 0) this.capture();
     this.updateUniforms();
     this.lines.visible = !this.parameters.disableTrails;
   }

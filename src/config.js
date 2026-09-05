@@ -34,11 +34,41 @@ export const MODEL_CONFIGS = {
 };
 
 export const QUALITY_LEVELS = {
-  low: { textureSize: 240, trailParticles: 620, bloom: false, pixelRatio: 1.25 },
-  medium: { textureSize: 384, trailParticles: 1080, bloom: true, pixelRatio: 1.5 },
-  high: { textureSize: 480, trailParticles: 1700, bloom: true, pixelRatio: 1.7 },
-  ultra: { textureSize: 672, trailParticles: 2300, bloom: true, pixelRatio: 1.85 },
+  low: {
+    textureSize: 224,
+    trailParticles: 0,
+    trailCaptureInterval: 0,
+    particleLayers: 1,
+    bloom: false,
+    pixelRatio: 1,
+  },
+  medium: {
+    textureSize: 320,
+    trailParticles: 560,
+    trailCaptureInterval: 4,
+    particleLayers: 2,
+    bloom: false,
+    pixelRatio: 1.25,
+  },
+  high: {
+    textureSize: 432,
+    trailParticles: 1100,
+    trailCaptureInterval: 3,
+    particleLayers: 3,
+    bloom: true,
+    pixelRatio: 1.5,
+  },
+  ultra: {
+    textureSize: 576,
+    trailParticles: 1700,
+    trailCaptureInterval: 2,
+    particleLayers: 3,
+    bloom: true,
+    pixelRatio: 1.7,
+  },
 };
+
+export const QUALITY_ORDER = ['low', 'medium', 'high', 'ultra'];
 
 export const DEFAULT_PARAMETERS = {
   pointSize: 1,
@@ -68,11 +98,33 @@ export const selectQuality = () => {
   const requested = new URLSearchParams(window.location.search).get('quality');
   if (requested && QUALITY_LEVELS[requested]) return requested;
 
+  try {
+    const adaptive = window.sessionStorage.getItem('ensil-adaptive-quality');
+    if (adaptive && QUALITY_LEVELS[adaptive]) return adaptive;
+  } catch {
+    // Storage can be unavailable in privacy-restricted browser sessions.
+  }
+
   const memory = navigator.deviceMemory ?? 8;
   const cores = navigator.hardwareConcurrency ?? 8;
   const mobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 720;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (mobile || memory <= 4 || cores <= 4) return 'low';
+  let legacyGpu = false;
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2', { powerPreference: 'high-performance' });
+    const debugInfo = gl?.getExtension('WEBGL_debug_renderer_info');
+    const renderer = debugInfo
+      ? String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)).toLowerCase()
+      : '';
+    legacyGpu = /intel.*(hd|iris)|radeon.*(hd|r5|r7|r9|pro 4|pro 5[0-7]0)/i.test(renderer);
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+  } catch {
+    legacyGpu = false;
+  }
+
+  if (mobile || reducedMotion || legacyGpu || memory <= 4 || cores <= 4) return 'low';
   if (memory <= 8 || cores <= 8) return 'medium';
   return 'high';
 };

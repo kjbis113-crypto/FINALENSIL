@@ -25,8 +25,19 @@ body,
   position: relative;
 }
 
+.dither-background {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
 .scene {
   position: absolute;
+  z-index: 1;
   inset: 0;
 }
 
@@ -111,10 +122,13 @@ body,
   transform-origin: left;
 }
 
-.study-char {
-  opacity: 0;
-  filter: blur(7px);
-  animation: study-type 190ms steps(2, end) forwards;
+.encrypted-char {
+  color: #737373;
+  transition: color 90ms linear;
+}
+
+.encrypted-char.is-revealed {
+  color: #fff;
 }
 
 .is-leaving .study-number-link {
@@ -127,32 +141,6 @@ body,
 .is-leaving .study-logo {
   opacity: 0;
   transition: opacity 500ms ease;
-}
-
-@keyframes study-type {
-  0% {
-    opacity: 0;
-    filter: blur(7px);
-    text-shadow: 0.045em 0 #fff;
-    transform: translateX(-0.025em);
-  }
-
-  55% {
-    opacity: 1;
-    filter: none;
-    text-shadow: -0.025em 0 #fff;
-  }
-
-  75% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
-    filter: none;
-    text-shadow: none;
-    transform: none;
-  }
 }
 
 .loading-state {

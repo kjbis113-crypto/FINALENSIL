@@ -3,7 +3,7 @@ import particlesVertexShader from '../shaders/particles.vert.glsl?raw';
 import particlesFragmentShader from '../shaders/particles.frag.glsl?raw';
 
 export class ParticleRenderer {
-  constructor(surfaceData, simulation, parameters, pixelRatio) {
+  constructor(surfaceData, simulation, parameters, pixelRatio, layerCount = 3) {
     this.parameters = parameters;
     this.simulation = simulation;
     this.pixelRatio = pixelRatio;
@@ -27,11 +27,12 @@ export class ParticleRenderer {
     this.geometry.setAttribute('aSeed', new THREE.BufferAttribute(seedData, 1));
     this.geometry.setDrawRange(0, particleCount);
 
-    this.materials = [
+    const layerMaterials = [
       this.createMaterial(0, 1, THREE.NormalBlending),
       this.createMaterial(1, 0.78, THREE.AdditiveBlending),
       this.createMaterial(2, 0.58, THREE.AdditiveBlending),
     ];
+    this.materials = layerMaterials.slice(0, Math.max(1, Math.min(3, layerCount)));
 
     this.layers = this.materials.map((material) => {
       const points = new THREE.Points(this.geometry, material);

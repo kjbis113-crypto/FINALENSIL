@@ -1,5 +1,9 @@
+import { mountDither } from './dither-mount.jsx';
+
 const cards = document.querySelectorAll('.media-card');
 const gallery = document.querySelector('.gallery');
+
+mountDither(document.querySelector('#dither-background'));
 
 const setObjectFocus = (card, isFocused) => {
   card.classList.toggle('is-object-hovered', isFocused);

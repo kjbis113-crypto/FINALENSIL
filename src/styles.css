@@ -58,6 +58,14 @@ video {
   background: #fff;
 }
 
+.dither-background {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.34;
+}
+
 .brand {
   position: absolute;
   z-index: 30;
@@ -89,6 +97,7 @@ video {
 
 .gallery {
   position: absolute;
+  z-index: 1;
   inset: 0;
 }
 

@@ -1,6 +1,12 @@
 import { Experience } from './experience/Experience.js';
+import { revealEncryptedText } from './components/ui/encrypted-text.js';
+import { mountDither } from './dither-mount.jsx';
 
 const sceneElement = document.querySelector('#scene');
+mountDither(document.querySelector('#dither-background'), {
+  enableMouseInteraction: false,
+  frameRate: 24,
+});
 const experience = new Experience(sceneElement);
 const infoLink = document.querySelector('.study-number-link');
 const numberLabel = infoLink.querySelector('.object-number');
@@ -9,18 +15,12 @@ const objectId = Math.min(4, Math.max(1, Number(new URLSearchParams(window.locat
 infoLink.href = `/info.html?id=${objectId}`;
 infoLink.setAttribute('aria-label', `Read information about NO. ${objectId}`);
 
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const label = `NO. ${objectId}`;
-  numberLabel.textContent = '';
-  numberLabel.setAttribute('aria-label', label);
-  Array.from(label).forEach((char, index) => {
-    const span = document.createElement('span');
-    span.className = 'study-char';
-    span.textContent = char;
-    span.style.animationDelay = `${220 + index * 115 + ((index * 31) % 4) * 18}ms`;
-    numberLabel.append(span);
-  });
-}
+revealEncryptedText(numberLabel, {
+  text: `NO. ${objectId}`,
+  revealDelayMs: 50,
+  startDelayMs: 180,
+  maxDurationMs: 1200,
+});
 
 infoLink.addEventListener('click', (event) => {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
