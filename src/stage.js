@@ -1,67 +1,40 @@
 /**
- * 스테이지 — 빔프로젝터에 띄우는 3D 공용 필드. 크롬·버튼 없이 구석 라벨만 두고,
- * 콘솔에서 온 focus/pulse 를 받아 개체를 반응시킨다.
- * 개체 상태는 1초마다 콘솔로 돌려보낸다.
+ * 스테이지 — 빔프로젝터에 띄우는 필드 파노라마. 크롬·버튼 없이 구석 라벨만 둔다.
+ * 콘솔이 붙으면 pulse 신호에 화면이 한 번 번진다.
  *
- * 구버전 ENSIL 의 src/routes/Stage.tsx + components/field/EcosystemCanvas.tsx 를
- * React 없이 옮긴 것. 필드 엔진(src/field/HabitatWorld.ts)은 그대로 쓴다.
+ * 구버전 ENSIL 의 src/routes/Stage.tsx 를 React 없이 옮긴 것.
  */
 
-import { HabitatWorld } from './field/HabitatWorld';
-import { CREATURE_RECORDS } from './field/creatureRecords';
-import { openFieldLink } from './field/field-link';
-import { isStageShortcut } from './stage-window';
-
-const SNAPSHOT_INTERVAL_MS = 1_000;
+import { createPanoramaField } from './field/panorama.js';
+import { openFieldLink } from './field/field-link.js';
+import { isStageShortcut } from './stage-window.js';
 
 const mount = document.querySelector('#field-mount');
-const loadingLabel = document.querySelector('#field-loading');
+const loading = document.querySelector('#field-loading');
+const loadingValue = document.querySelector('#field-loading-value');
 const consoleDot = document.querySelector('#console-dot');
 const consoleLabel = document.querySelector('#console-label');
 const hint = document.querySelector('#fullscreen-hint');
 const page = document.querySelector('.stage-page');
 
-let lastSnapshotAt = 0;
-/** @type {ReturnType<typeof openFieldLink> | null} */
-let link = null;
-
-const world = new HabitatWorld({
-  mount,
-  records: CREATURE_RECORDS,
-  mode: 'field',
-  ambient: true,
-  selectedId: null,
-  observation: false,
-  paused: false,
-  onLoaded: (loaded, total) => {
-    if (loaded >= total) {
-      loadingLabel.remove();
+const field = createPanoramaField(mount, {
+  onProgress: (percent) => {
+    loadingValue.textContent = `${percent}%`;
+  },
+  onMode: (mode) => {
+    if (mode === 'error') {
+      loadingValue.textContent = '—';
+      loading.querySelector('span').textContent = 'WEBGL OR PANORAMA TEXTURE UNAVAILABLE';
       return;
     }
-    loadingLabel.textContent = `ECOLOGIES GENERATING / ${String(loaded).padStart(2, '0')}—${String(total).padStart(2, '0')}`;
+    loading.remove();
+    page.dataset.panorama = mode;
   },
-  onSelect: (id) => world.setOptions({ selectedId: id }),
-  onSnapshot: (items) => {
-    const now = performance.now();
-    if (now - lastSnapshotAt < SNAPSHOT_INTERVAL_MS) return;
-    lastSnapshotAt = now;
-    link?.send({
-      type: 'snapshot',
-      items: items.map(({ id, state, energy }) => ({ id, state, energy })),
-    });
-  },
-  onEnter: () => undefined,
-  onProximity: () => undefined,
-  onImmersiveChange: () => undefined,
 });
 
-link = openFieldLink('stage', {
+const link = openFieldLink('stage', {
   onMessage: (msg) => {
-    if (msg.type === 'pulse') {
-      world.activate(msg.id, msg.strength);
-      flashPulse();
-    }
-    if (msg.type === 'focus') world.setOptions({ selectedId: msg.id });
+    if (msg.type === 'pulse') flashPulse();
   },
   onPeerChange: (alive) => {
     consoleDot.dataset.alive = alive ? 'true' : 'false';
@@ -101,6 +74,6 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 window.addEventListener('pagehide', () => {
-  world.dispose();
+  field.dispose();
   link.close();
 });
