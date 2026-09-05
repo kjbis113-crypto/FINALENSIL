@@ -49,8 +49,8 @@ const world = new HabitatWorld({
   ambient: true,
   // 클릭이 포인터 락을 잡아 1인칭으로 빠지면 개체를 고를 수 없다
   firstPerson: false,
-  // 폐허 GLB 는 로드되는 순간 절차적 지형을 전부 숨긴다
-  referenceLandscape: false,
+  // FIELD 에서만 폐허 GLB 표면을 고밀도 Gaussian-like splat으로 재구성한다.
+  referenceLandscape: true,
   // 개체는 아카이브와 같은 GPU 포인트클라우드로
   creatureRenderer: 'particles',
   selectedId: null,

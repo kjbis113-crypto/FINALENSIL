@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 // GLB는 압축(EXT_meshopt_compression)돼 있으므로 meshopt 디코더가 연결된
 // 공용 로더(sim3d/gltf.ts)로 로드한다. 디코더 정적 import는 wasm-rollup 크래시(debug.md #1).
 import { getGLTFLoader } from './gltf';
@@ -16,6 +19,15 @@ import {
 import { beginEvent, chooseWeightedEvent, eventProgress, loadWorldState, saveWorldState, seededUnit } from './worldState';
 import type { HabitatBuildContext, HabitatSnapshot, HabitatWorldState } from './types';
 import { createParticleCreature } from './particle-creature.js';
+import {
+  LandscapeSplatRenderer,
+  LANDSCAPE_SPLAT_LAYER,
+} from './LandscapeSplatRenderer.js';
+import {
+  CreatureHalo,
+  CREATURE_HALO_CONFIG,
+  CREATURE_HALO_LAYER,
+} from './CreatureHalo.js';
 
 export type HabitatWorldOptions = {
   mount: HTMLElement;
@@ -30,9 +42,9 @@ export type HabitatWorldOptions = {
    */
   firstPerson?: boolean;
   /**
-   * 절차적 지형 위에 폐허 GLB(ensil-green-circuit-ruins)를 덮을지.
-   * 이 모델이 로드되면 setFieldFallbackVisible(false) 로 절차적 지형·등고선·
-   * 신호선이 전부 숨겨진다. false 면 절차적 지형만 남는다.
+   * 절차적 지형 대신 표면 샘플링된 Ghost Forest FIELD를 표시할지.
+   * 로드되면 setFieldFallbackVisible(false) 로 절차적 지형·등고선·신호선이
+   * 숨겨진다. false 면 절차적 지형만 남는다.
    */
   referenceLandscape?: boolean;
   /**
@@ -83,6 +95,7 @@ type ParticleCreatureHandle = {
 
 type FieldReferenceLandscape = {
   model: THREE.Group;
+  splats: LandscapeSplatRenderer;
   basePosition: THREE.Vector3;
   baseRotation: THREE.Euler;
   baseScale: THREE.Vector3;
@@ -182,6 +195,8 @@ export class HabitatWorld {
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(33, 1, 0.1, 220);
   private renderer: THREE.WebGLRenderer;
+  private composer: EffectComposer | null = null;
+  private creatureHalo: CreatureHalo | null = null;
   private controls: OrbitControls;
   private fieldController: FirstPersonFieldController | null = null;
   private runtimes = new Map<string, HabitatRuntime>();
@@ -399,104 +414,102 @@ export class HabitatWorld {
     });
   }
 
+  private markCreatureForHalo(root: THREE.Object3D) {
+    if (this.options.mode !== 'field' || this.options.referenceLandscape === false) return;
+    root.traverse((child) => {
+      if (child instanceof THREE.Points || child instanceof THREE.Mesh) {
+        child.layers.enable(CREATURE_HALO_LAYER);
+      }
+    });
+  }
+
+  private enableFieldPostprocessing() {
+    if (this.composer || this.options.mode !== 'field') return;
+    const parameters = {
+      creatureHaloInnerRadius: CREATURE_HALO_CONFIG.innerRadius,
+      creatureHaloInnerStrength: CREATURE_HALO_CONFIG.innerStrength,
+      creatureHaloOuterRadius: CREATURE_HALO_CONFIG.outerRadius,
+      creatureHaloOuterStrength: CREATURE_HALO_CONFIG.outerStrength,
+      creatureHaloColor: CREATURE_HALO_CONFIG.color,
+    };
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.creatureHalo = new CreatureHalo(
+      this.renderer,
+      this.scene,
+      this.camera,
+      parameters,
+      { pixelRatio: this.renderer.getPixelRatio() },
+      LANDSCAPE_SPLAT_LAYER,
+    );
+    this.creatureHalo.setEnabled(true);
+    this.composer.addPass(this.creatureHalo.compositePass);
+    this.composer.addPass(new OutputPass());
+    this.camera.layers.enable(LANDSCAPE_SPLAT_LAYER);
+    this.resize();
+  }
+
   private loadFieldReferenceLandscape() {
     this.renderer.domElement.dataset.habitatModel = 'LOADING';
     this.renderer.domElement.dataset.habitatError = 'false';
-    getGLTFLoader().then((loader) => loader.load(
-      '/models/ensil-green-circuit-ruins.glb',
-      (gltf) => {
-        if (this.disposed) {
-          this.disposeObject(gltf.scene);
-          return;
-        }
-        const model = gltf.scene;
-        model.name = 'GREEN_CIRCUIT_RUINS';
-        const paper = new THREE.Color(0xffffff);
-        const mineral = new THREE.Color(0xd9d9d9);
-        const primary = new THREE.Color(0xffffff);
-        const structure = new THREE.Color(0x002928);
-        let meshCount = 0;
-        model.traverse((child) => {
-          if (!(child instanceof THREE.Mesh)) return;
-          meshCount += 1;
-          const geometry = child.geometry;
-          geometry.deleteAttribute('color');
-          if (!geometry.getAttribute('normal')) geometry.computeVertexNormals();
-          geometry.computeBoundingBox();
-          geometry.computeBoundingSphere();
-          const positions = geometry.getAttribute('position');
-          const colours = new Float32Array(positions.count * 3);
-          const colour = new THREE.Color();
-          for (let index = 0; index < positions.count; index += 1) {
-            const x = positions.getX(index);
-            const y = positions.getY(index);
-            const z = positions.getZ(index);
-            const mineralBand = Math.sin(x * 22 + z * 7.5)
-              + Math.cos(z * 19 - x * 5.5)
-              + Math.sin((x + z) * 31 + y * 8);
-            const signalAmount = Math.pow(THREE.MathUtils.smoothstep(mineralBand, 1.05, 2.2), 1.4) * 0.76;
-            const structureAmount = Math.pow(THREE.MathUtils.smoothstep(-mineralBand, 1.65, 2.7), 1.2) * 0.52;
-            colour.copy(paper).lerp(mineral, 0.34).lerp(primary, signalAmount).lerp(structure, structureAmount);
-            colours[index * 3] = colour.r;
-            colours[index * 3 + 1] = colour.g;
-            colours[index * 3 + 2] = colour.b;
-          }
-          geometry.setAttribute('color', new THREE.BufferAttribute(colours, 3));
-          child.material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            vertexColors: true,
-            roughness: 0.91,
-            metalness: 0.015,
-            flatShading: true,
-            side: THREE.DoubleSide,
-          });
-          child.castShadow = false;
-          child.receiveShadow = true;
-          child.frustumCulled = false;
-          child.userData.isCommonField = true;
-          this.terrains.push(child);
-        });
-        model.updateMatrixWorld(true);
-        const bounds = new THREE.Box3().setFromObject(model);
-        const size = bounds.getSize(new THREE.Vector3());
-        const horizontal = Math.max(size.x, size.z) || 1;
-        const baseScale = 100 / horizontal;
-        model.scale.set(baseScale, baseScale * 0.62, baseScale);
-        const fitted = new THREE.Box3().setFromObject(model);
-        const centre = fitted.getCenter(new THREE.Vector3());
-        model.position.set(-centre.x, -2.15 - fitted.min.y, -centre.z - 1.5);
-        model.rotation.set(0, -0.055, 0);
-        this.scene.add(model);
-        this.setFieldFallbackVisible(false);
-        this.fieldReferenceLandscape = {
-          model,
-          basePosition: model.position.clone(),
-          baseRotation: model.rotation.clone(),
-          baseScale: model.scale.clone(),
-          pointerEnergy: 0,
-        };
-        this.renderer.domElement.dataset.habitatModel = model.name;
-        this.renderer.domElement.dataset.habitatParts = String(meshCount);
-        this.renderer.domElement.dataset.habitatInteractive = 'true';
-        this.renderer.domElement.dataset.habitatError = 'false';
-        model.updateMatrixWorld(true);
-        this.raiseEcologiesToReferenceSurface(model);
-      },
-      undefined,
-      (error) => {
+    const splats = new LandscapeSplatRenderer({
+      renderer: this.renderer,
+      mobile: this.mobile,
+      reducedMotion: this.reducedMotion,
+    });
+
+    void splats.load().then(() => {
+      if (this.disposed) {
+        splats.dispose();
+        return;
+      }
+      const model = splats.root;
+      const horizontal = Math.max(
+        splats.metadata.normalizedDimensions[0],
+        splats.metadata.normalizedDimensions[2],
+      ) || 1;
+      const baseScale = 80 / horizontal;
+      model.scale.setScalar(baseScale);
+      // The source contains long roots below its walkable surface. Aligning its
+      // absolute minimum to the floor lifts the usable forest above the camera;
+      // this calibrated surface datum keeps foreground ground and side volume
+      // around the existing FIELD camera without changing that camera.
+      model.position.set(0, -3.35, -1.5);
+      model.rotation.set(0, -0.055, 0);
+      this.scene.add(model);
+      this.terrains.push(splats.groundProxy);
+      model.updateMatrixWorld(true);
+      this.raiseEcologiesToReferenceSurface(model);
+      this.fieldReferenceLandscape = {
+        model,
+        splats,
+        basePosition: model.position.clone(),
+        baseRotation: model.rotation.clone(),
+        baseScale: model.scale.clone(),
+        pointerEnergy: 0,
+      };
+      this.setFieldFallbackVisible(false);
+      this.enableFieldPostprocessing();
+      this.renderer.domElement.dataset.habitatModel = model.name;
+      this.renderer.domElement.dataset.habitatParts = String(splats.metadata.sourceTriangleCount);
+      this.renderer.domElement.dataset.habitatInteractive = 'true';
+      this.renderer.domElement.dataset.habitatError = 'false';
+    }).catch((error) => {
+        splats.dispose();
         this.setFieldFallbackVisible(true);
         this.renderer.domElement.dataset.habitatModel = 'PROCEDURAL_FALLBACK';
         this.renderer.domElement.dataset.habitatParts = '0';
         this.renderer.domElement.dataset.habitatInteractive = 'false';
         this.renderer.domElement.dataset.habitatError = 'true';
-        console.warn('ENSIL habitat GLB could not be loaded; using procedural fallback.', error);
-      },
-    ));
+        console.warn('ENSIL Ghost Forest splats could not be loaded; using procedural fallback.', error);
+      });
   }
 
   private raiseEcologiesToReferenceSurface(model: THREE.Object3D) {
     const surfaces: THREE.Object3D[] = [];
-    model.traverse((child) => { if (child instanceof THREE.Mesh) surfaces.push(child); });
+    model.traverse((child) => {
+      if (child instanceof THREE.Mesh && !child.userData.isLandscapeSplat) surfaces.push(child);
+    });
     const raycaster = new THREE.Raycaster();
     raycaster.ray.direction.set(0, -1, 0);
     this.runtimes.forEach((runtime) => {
@@ -504,7 +517,10 @@ export class HabitatWorld {
       const hit = raycaster.intersectObjects(surfaces, false)[0];
       if (!hit) return;
       const localGround = terrainHeight(runtime.context, 0, 0);
-      const homeY = hit.point.y - localGround + 0.12;
+      const clearance = Number(hit.object.userData.creatureClearance ?? 0.12);
+      const originalCreatureGround = runtime.home.y + localGround;
+      const safeCreatureGround = Math.max(originalCreatureGround, hit.point.y + clearance);
+      const homeY = safeCreatureGround - localGround;
       runtime.home.y = homeY;
       runtime.group.position.y = homeY;
     });
@@ -553,6 +569,7 @@ export class HabitatWorld {
         runtime.creatureBody.remove(runtime.placeholder);
         this.disposeObject(runtime.placeholder);
         runtime.creatureBody.add(model);
+        this.markCreatureForHalo(model);
         this.completeLoad(runtime);
       },
       undefined,
@@ -579,6 +596,7 @@ export class HabitatWorld {
         return;
       }
       creature.root.traverse((child) => { child.userData.creatureId = runtime.record.id; });
+      this.markCreatureForHalo(creature.root);
       runtime.creatureBody.remove(runtime.placeholder);
       this.disposeObject(runtime.placeholder);
       runtime.creatureBody.add(creature.root);
@@ -729,6 +747,12 @@ export class HabitatWorld {
     this.mobile = width <= 760;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.mobile ? 1.15 : 1.5));
     this.renderer.setSize(width, height, false);
+    if (this.composer) {
+      this.composer.setPixelRatio(this.renderer.getPixelRatio());
+      this.composer.setSize(width, height);
+    }
+    this.creatureHalo?.setSize(width, height);
+    this.fieldReferenceLandscape?.splats.setSize();
     this.camera.aspect = width / height;
     this.camera.fov = this.options.mode === 'field' ? (this.mobile ? 64 : 58) : (this.mobile ? 39 : 33);
     this.camera.updateProjectionMatrix();
@@ -906,6 +930,7 @@ export class HabitatWorld {
       reference.baseScale.y * breath,
       reference.baseScale.z * breath,
     );
+    reference.splats.update(now / 1000, dt);
   }
 
   private applyEmergence(runtime: HabitatRuntime, now: number) {
@@ -999,7 +1024,12 @@ export class HabitatWorld {
       })));
     }
 
-    this.renderer.render(this.scene, this.camera);
+    if (this.composer && this.creatureHalo) {
+      this.creatureHalo.renderMask();
+      this.composer.render(dt);
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
     this.frame = window.requestAnimationFrame(this.animate);
   };
 
@@ -1039,6 +1069,12 @@ export class HabitatWorld {
     this.controls.dispose();
     this.fieldController?.dispose();
     this.fieldController = null;
+    this.fieldReferenceLandscape?.splats.dispose();
+    this.fieldReferenceLandscape = null;
+    this.creatureHalo?.dispose();
+    this.creatureHalo = null;
+    this.composer?.dispose();
+    this.composer = null;
     this.runtimes.forEach((runtime) => {
       saveWorldState(runtime.record.id, runtime.state);
       runtime.particles?.dispose(); // FBO 와 데이터 텍스처는 씬 순회로는 안 잡힌다

@@ -136,7 +136,7 @@ export class PointerField {
     }
 
     const zoomTarget = this.hasPointer
-      ? THREE.MathUtils.clamp(1 + this.ndc.y * 0.34, 0.72, 1.34)
+      ? THREE.MathUtils.clamp(1 + this.ndc.y * 0.68, 0.45, 1.68)
       : 1;
     this.zoom += (zoomTarget - this.zoom) * (1 - Math.exp(-5.5 * delta));
 
