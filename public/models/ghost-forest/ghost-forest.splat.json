@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "source": "Meshy_AI_Ghost_Forest_Cartogra_0905170424_texture.obj",
+  "texture": "Meshy_AI_Ghost_Forest_Cartogra_0905170424_texture.png",
+  "sampleCount": 500000,
+  "sourceVertexCount": 887234,
+  "sourceTriangleCount": 1780403,
+  "sourceBounds": {
+    "minimum": [
+      -0.916677,
+      -0.569142,
+      -0.954944
+    ],
+    "maximum": [
+      0.910766,
+      0.860275,
+      0.973706
+    ]
+  },
+  "normalizationCenter": [
+    -0.0029555,
+    0.1455665,
+    0.009380999999999973
+  ],
+  "normalizationScale": 1.0369947891011848,
+  "normalizedBounds": {
+    "minimum": [
+      -0.9475244341897182,
+      -0.7411489902263241,
+      -1
+    ],
+    "maximum": [
+      0.9475244341897182,
+      0.7411489902263241,
+      1
+    ]
+  },
+  "normalizedDimensions": [
+    1.8950488683794364,
+    1.4822979804526482,
+    2
+  ],
+  "storage": "planar",
+  "bytesPerSample": 17,
+  "heightGrid": {
+    "size": 129,
+    "componentType": "int16",
+    "normalized": true
+  },
+  "layout": {
+    "positions": {
+      "componentType": "int16",
+      "itemSize": 3,
+      "normalized": true
+    },
+    "normals": {
+      "componentType": "int8",
+      "itemSize": 3,
+      "normalized": true
+    },
+    "uvs": {
+      "componentType": "uint16",
+      "itemSize": 2,
+      "normalized": true
+    },
+    "data": {
+      "componentType": "uint8",
+      "itemSize": 4,
+      "normalized": true
+    }
+  }
+}

@@ -110,7 +110,7 @@ export function revealEncryptedCollection(elements, options = {}) {
         ...options,
         startDelayMs: (options.startDelayMs ?? 0) + index * (options.staggerMs ?? 70),
         maxDurationMs:
-          element.tagName === 'P'
+          element.tagName === 'P' || element.hasAttribute('data-encrypted-body')
             ? options.bodyDurationMs ?? 2600
             : options.labelDurationMs ?? 1200,
       }),

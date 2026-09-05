@@ -22,6 +22,17 @@
   --specimen-scale: 100%;
   --specimen-color-opacity: 1;
 
+  /* Figma uses Pretendard Light for Korean body copy; NO.4 Story is
+     intentionally overridden below with KoPubWorldDotum Medium. */
+  --font-body:
+    "Pretendard Variable",
+    Pretendard,
+    "Apple SD Gothic Neo",
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+
   background: transparent;
 }
 
@@ -179,6 +190,40 @@
   letter-spacing: var(--tracking-text);
   white-space: pre-wrap;
   word-break: keep-all;
+}
+
+.character-lead,
+.character-detail {
+  display: block;
+  font-family: inherit;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-text);
+  white-space: pre-wrap;
+}
+
+.fact .character-copy {
+  font-size: 0;
+  line-height: 0;
+  white-space: normal;
+}
+
+.character-lead {
+  font-weight: 700;
+}
+
+.info-page[data-creature="1"] .character-detail {
+  margin-top: 1.8em;
+}
+
+.info-page[data-creature="4"] .fact-story p {
+  font-family:
+    "KoPubWorldDotum",
+    "Pretendard Variable",
+    Pretendard,
+    "Apple SD Gothic Neo",
+    sans-serif;
+  font-weight: 500;
 }
 
 /* --- exit --------------------------------------------------------
