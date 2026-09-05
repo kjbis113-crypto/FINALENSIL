@@ -1,42 +1,13 @@
-:root {
-  --stage-width-unit: min(1vw, 1.777778vh);
-  color: #fff;
-  background: #000;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-}
+/* ================================================================
+   Field (interactive.html)
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-.interactive-page {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  background: #000;
-}
-
-.interactive-page {
-  position: relative;
-}
-
-.dither-background {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  overflow: hidden;
-  mix-blend-mode: screen;
-  opacity: 0.18;
-  pointer-events: none;
-}
+   The simulation is full bleed; the same 16:9 frame from the design
+   system floats on top of it so the logo, the top-right link and the
+   specimen number sit exactly where the archive page puts them.
+   ================================================================ */
 
 .scene {
-  position: absolute;
+  position: fixed;
   z-index: 1;
   inset: 0;
 }
@@ -49,88 +20,24 @@ body,
   touch-action: none;
 }
 
-.scene canvas[data-dragging='true'] {
+.scene canvas[data-dragging="true"] {
   cursor: grabbing;
 }
 
-.study-ui {
-  position: absolute;
+.study-frame {
   z-index: 5;
-  top: 50%;
-  left: 50%;
-  width: min(100vw, 177.7778svh);
-  height: min(100svh, 56.25vw);
   pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
-.study-logo,
 .study-number-link {
-  position: absolute;
   pointer-events: auto;
+  transition:
+    filter 420ms var(--ease-sweep),
+    opacity 420ms ease,
+    transform 420ms var(--ease-sweep);
 }
 
-.study-logo {
-  top: 4.89%;
-  left: 2.78%;
-  width: 3.7%;
-  transition: opacity 240ms ease;
-}
-
-.study-logo img {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: grayscale(1) brightness(0) invert(1);
-}
-
-.study-logo:hover,
-.study-logo:focus-visible {
-  opacity: 1;
-}
-
-.study-number-link {
-  bottom: -0.02em;
-  left: 2.34%;
-  color: #fff;
-  font-size: calc(var(--stage-width-unit) * 10.4167);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: -0.07em;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: filter 420ms cubic-bezier(0.77, 0, 0.18, 1), opacity 420ms ease,
-    transform 420ms cubic-bezier(0.77, 0, 0.18, 1);
-}
-
-.study-number-link::after {
-  position: absolute;
-  right: 0.01em;
-  bottom: 0.08em;
-  left: 0.05em;
-  height: 0.018em;
-  background: currentColor;
-  content: '';
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 380ms cubic-bezier(0.77, 0, 0.18, 1);
-}
-
-.study-number-link:hover::after,
-.study-number-link:focus-visible::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
-.encrypted-char {
-  color: #737373;
-  transition: color 90ms linear;
-}
-
-.encrypted-char.is-revealed {
-  color: #fff;
-}
-
+/* --- exit -------------------------------------------------------- */
 .is-leaving .study-number-link {
   filter: blur(8px);
   opacity: 0;
@@ -138,11 +45,12 @@ body,
 }
 
 .is-leaving .scene,
-.is-leaving .study-logo {
+.is-leaving .ensil-header {
   opacity: 0;
   transition: opacity 500ms ease;
 }
 
+/* --- loading ----------------------------------------------------- */
 .loading-state {
   position: fixed;
   z-index: 6;
@@ -151,7 +59,8 @@ body,
   display: grid;
   width: min(14rem, calc(100vw - 4rem));
   gap: 0.75rem;
-  color: #fff;
+  color: var(--page-fg);
+  font-family: var(--font-display);
   font-size: 0.66rem;
   letter-spacing: 0.12em;
   transform: translate(-50%, -50%);
@@ -164,7 +73,7 @@ body,
 }
 
 .loading-track {
-  height: 1px;
+  height: var(--rule-weight);
   overflow: hidden;
   background: rgb(255 255 255 / 0.18);
 }
@@ -173,7 +82,7 @@ body,
   display: block;
   width: 0;
   height: 100%;
-  background: #fff;
+  background: currentColor;
   transition: width 180ms ease;
 }
 
@@ -184,20 +93,11 @@ body,
   left: 50%;
   width: min(28rem, calc(100vw - 3rem));
   margin: 0;
-  color: #fff;
+  color: var(--page-fg);
+  font-family: var(--font-display);
   font-size: 0.75rem;
   line-height: 1.6;
   letter-spacing: 0.08em;
   text-align: center;
   transform: translate(-50%, -50%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }

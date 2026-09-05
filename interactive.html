@@ -1,36 +1,49 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="field">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Interactive ENSIL GPU point-cloud motion study." />
-    <title>NO.1 — ENSIL</title>
+    <title>NO. 1 — ENSIL</title>
     <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/design-system.css" />
     <link rel="stylesheet" href="/src/interactive.css" />
   </head>
   <body>
-    <main class="interactive-page">
-      <div class="dither-background" id="dither-background" aria-hidden="true"></div>
+    <div class="scene" id="scene" aria-label="Interactive 3D point-cloud object"></div>
 
-      <div class="study-ui">
-        <a class="study-logo" href="/" aria-label="Return to the ENSIL gallery">
+    <div class="ensil-backdrop" id="dither-background" aria-hidden="true"></div>
+
+    <main class="ensil-frame study-frame" aria-labelledby="object-number">
+      <header class="ensil-header">
+        <a class="ensil-logo" href="/" aria-label="Return to the ENSIL gallery">
           <img src="/assets/ensil-logo.png" alt="ENSIL" />
         </a>
 
-        <a class="study-number-link" href="/info.html?id=1" aria-label="Read information about NO. 1">
-          <span class="object-number" data-encrypted>NO. 1</span>
+        <a
+          class="ensil-nav-link study-info-link"
+          href="/info.html?id=1"
+          aria-label="Read information about NO. 1"
+          data-encrypted
+        >
+          READ INFORMATION
         </a>
-      </div>
+      </header>
 
-      <div class="scene" id="scene" aria-label="Interactive 3D point-cloud object"></div>
-
-      <div class="loading-state" role="status" aria-live="polite">
-        <span class="loading-label">LOADING NO.1</span>
-        <span class="loading-track"><span class="loading-progress"></span></span>
-      </div>
-
+      <a
+        class="ensil-number study-number-link"
+        href="/info.html?id=1"
+        aria-label="Read information about NO. 1"
+      >
+        <span class="object-number" id="object-number" data-encrypted>NO. 1</span>
+      </a>
     </main>
+
+    <div class="loading-state" role="status" aria-live="polite">
+      <span class="loading-label">LOADING NO.1</span>
+      <span class="loading-track"><span class="loading-progress"></span></span>
+    </div>
 
     <script type="module" src="/src/interactive.js"></script>
   </body>

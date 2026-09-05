@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-page="archive">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,44 +7,56 @@
     <meta name="description" content="ENSIL creature archive." />
     <title>NO. 1 — ENSIL Archive</title>
     <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/design-system.css" />
     <link rel="stylesheet" href="/src/info.css" />
   </head>
   <body>
-    <main class="info-page" aria-labelledby="creature-number">
-      <div class="dither-background" id="dither-background" aria-hidden="true"></div>
+    <div class="ensil-backdrop" id="dither-background" aria-hidden="true"></div>
 
-      <a class="info-logo" href="/" aria-label="Return to the ENSIL gallery">
-        <img src="/assets/ensil-logo.png" alt="ENSIL" />
-      </a>
+    <main class="ensil-frame info-page" aria-labelledby="creature-number">
+      <header class="ensil-header">
+        <a class="ensil-logo" href="/" aria-label="Return to the ENSIL gallery">
+          <img src="/assets/ensil-logo.png" alt="ENSIL" />
+        </a>
 
-      <a class="back-to-interaction" href="/interactive.html?id=1" data-encrypted>
-        BACK TO INTERACTION
-      </a>
+        <a
+          class="ensil-nav-link back-to-interaction"
+          href="/interactive.html?id=1"
+          aria-label="Back to the NO. 1 interaction"
+          data-encrypted
+        >BACK TO INTERACTION</a>
+      </header>
 
       <figure class="specimen-media" aria-label="Creature specimen image">
-        <img class="specimen-image" src="/assets/info/no1.jpeg" alt="NO. 1 creature specimen" />
+        <img class="specimen-image" src="/assets/info/no1-cutout.png" alt="NO. 1 creature specimen" />
         <span class="specimen-color" aria-hidden="true"></span>
       </figure>
 
-      <section class="fact fact-origin">
-        <div class="fact-rule" aria-hidden="true"></div>
-        <h2 data-encrypted>Origin</h2>
-        <p data-field="origin" data-encrypted></p>
-      </section>
+      <div class="fact-column">
+        <section class="fact fact-origin">
+          <h2 data-encrypted>Origin</h2>
+          <div class="fact-rule" aria-hidden="true"></div>
+          <p data-field="origin" data-encrypted></p>
+        </section>
 
-      <section class="fact fact-story">
-        <div class="fact-rule" aria-hidden="true"></div>
-        <h2 data-encrypted>Story</h2>
-        <p data-field="story" data-encrypted></p>
-      </section>
+        <section class="fact fact-story">
+          <h2 data-encrypted>Story</h2>
+          <div class="fact-rule" aria-hidden="true"></div>
+          <p data-field="story" data-encrypted></p>
+        </section>
 
-      <section class="fact fact-character">
-        <div class="fact-rule" aria-hidden="true"></div>
-        <h2 data-encrypted>Character</h2>
-        <p data-field="character" data-encrypted></p>
-      </section>
+        <section class="fact fact-character">
+          <h2 data-encrypted>Character</h2>
+          <div class="fact-rule" aria-hidden="true"></div>
+          <p data-field="character" data-encrypted></p>
+        </section>
+      </div>
 
-      <a class="creature-number-link" href="/interactive.html?id=1" aria-label="Return to the NO. 1 point cloud">
+      <a
+        class="ensil-number creature-number-link"
+        href="/interactive.html?id=1"
+        aria-label="Return to the NO. 1 point cloud"
+      >
         <h1 id="creature-number" data-encrypted>NO. 1</h1>
       </a>
     </main>
