@@ -83,4 +83,11 @@ cards.forEach((card) => {
   card.addEventListener('pointerleave', () => setObjectFocus(card, false));
   card.addEventListener('focus', () => gallery.classList.add('has-object-focus'));
   card.addEventListener('blur', () => gallery.classList.remove('has-object-focus'));
+  card.addEventListener('click', (event) => {
+    const isMouseClick = event.detail > 0 && window.matchMedia('(hover: hover)').matches;
+
+    if (isMouseClick && !card.classList.contains('is-object-hovered')) {
+      event.preventDefault();
+    }
+  });
 });

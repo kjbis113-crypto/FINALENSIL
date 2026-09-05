@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Interactive ENSIL GPU point-cloud motion study." />
+    <title>NO.1 — ENSIL</title>
+    <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/interactive.css" />
+  </head>
+  <body>
+    <main class="interactive-page">
+      <div class="study-ui">
+        <a class="study-logo" href="/" aria-label="Return to the ENSIL gallery">
+          <img src="/assets/ensil-logo.png" alt="ENSIL" />
+        </a>
+
+        <a class="study-number-link" href="/info.html?id=1" aria-label="Read information about NO. 1">
+          <span class="object-number">NO. 1</span>
+        </a>
+      </div>
+
+      <div class="scene" id="scene" aria-label="Interactive 3D point-cloud object"></div>
+
+      <div class="loading-state" role="status" aria-live="polite">
+        <span class="loading-label">LOADING NO.1</span>
+        <span class="loading-track"><span class="loading-progress"></span></span>
+      </div>
+
+    </main>
+
+    <script type="module" src="/src/interactive.js"></script>
+  </body>
+</html>

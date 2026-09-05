@@ -79,7 +79,7 @@ video {
 
 .brand:hover img,
 .brand:focus-visible img {
-  opacity: 0.72;
+  opacity: 1;
 }
 
 .brand:focus-visible {
@@ -97,6 +97,8 @@ video {
   isolation: isolate;
   overflow: visible;
   background: transparent;
+  color: inherit;
+  text-decoration: none;
   outline: none;
   transform: translateY(0) scale(1);
   transform-origin: 50% 50%;
