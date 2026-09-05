@@ -53,6 +53,7 @@
   --type-heading: calc(var(--u) * 1.640625); /*  31.5px */
   --type-body: calc(var(--u) * 0.9375);      /*  18px */
   --type-label: calc(var(--u) * 0.9375);     /*  18px */
+  --type-index: calc(var(--u) * 0.72);       /*  13.8px — top index and small captions */
 
   --leading-display: 1;
   --leading-heading: 1.5;
@@ -214,7 +215,7 @@ canvas {
 
 /* The index reads a step smaller than body labels. */
 .ensil-nav .ensil-nav-link {
-  font-size: calc(var(--u) * 0.72); /* 13.8px */
+  font-size: var(--type-index);
 }
 
 .ensil-nav-link[aria-current="page"] {
