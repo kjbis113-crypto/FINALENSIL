@@ -109,7 +109,7 @@ function setStagePercent(name, value, dimension) {
   page.style.setProperty(name, `${(value / base) * 100}%`);
 }
 
-function applyFactLayout(name, layout) {
+function applyFactLayout(name, layout, ruleWidthOverride) {
   const [headingX, headingY, headingWidth] = layout.heading;
   const [ruleX, ruleY, ruleWidth] = layout.rule;
   const [bodyX, bodyY, bodyWidth] = layout.body;
@@ -119,7 +119,7 @@ function applyFactLayout(name, layout) {
   setStagePercent(`--${name}-heading-width`, headingWidth, 'x');
   setStagePercent(`--${name}-rule-left`, ruleX, 'x');
   setStagePercent(`--${name}-rule-top`, ruleY, 'y');
-  setStagePercent(`--${name}-rule-width`, ruleWidth, 'x');
+  setStagePercent(`--${name}-rule-width`, ruleWidthOverride ?? ruleWidth, 'x');
   setStagePercent(`--${name}-body-left`, bodyX, 'x');
   setStagePercent(`--${name}-body-top`, bodyY, 'y');
   setStagePercent(`--${name}-body-width`, bodyWidth, 'x');
@@ -137,7 +137,10 @@ page.style.setProperty('--image-top', `${(creature.media.imageY / creature.media
 page.style.setProperty('--image-width', `${(creature.media.imageWidth / creature.media.width) * 100}%`);
 page.style.setProperty('--image-height', `${(creature.media.imageHeight / creature.media.height) * 100}%`);
 page.style.setProperty('--specimen-color-opacity', creature.media.colorOpacity);
-Object.entries(creature.facts).forEach(([name, layout]) => applyFactLayout(name, layout));
+const sharedFactRuleWidth = creature.facts.character.rule[2];
+Object.entries(creature.facts).forEach(([name, layout]) =>
+  applyFactLayout(name, layout, sharedFactRuleWidth),
+);
 
 image.src = `/assets/info/no${id}-cutout.png`;
 image.alt = `NO. ${id} creature specimen`;
