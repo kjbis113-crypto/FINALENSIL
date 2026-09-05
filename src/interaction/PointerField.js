@@ -17,6 +17,8 @@ export class PointerField {
     this.active = 0;
     this.targetActive = 0;
     this.down = 0;
+    this.hold = 0;
+    this.zoom = 1;
     this.lastPointer = new THREE.Vector2();
     this.lastTime = 0;
     this.lastMovementAt = 0;
@@ -125,6 +127,19 @@ export class PointerField {
     this.rotation.lerp(this.targetRotation, rotationLerp);
     this.targetVelocity.multiplyScalar(Math.exp(-5.5 * delta));
     this.active += (this.targetActive - this.active) * activeLerp;
+
+    const isHoldingSurface = this.down && (this.targetActive > 0.25 || this.active > 0.35);
+    if (isHoldingSurface) {
+      this.hold = Math.min(1, this.hold + delta / 1.35);
+    } else {
+      this.hold *= Math.exp(-2.2 * delta);
+    }
+
+    const zoomTarget = this.hasPointer
+      ? THREE.MathUtils.clamp(1 + this.ndc.y * 0.34, 0.72, 1.34)
+      : 1;
+    this.zoom += (zoomTarget - this.zoom) * (1 - Math.exp(-5.5 * delta));
+
     this.debugSphere.visible = Boolean(showDebugSphere && this.active > 0.03);
     this.debugSphere.position.copy(this.position);
   }

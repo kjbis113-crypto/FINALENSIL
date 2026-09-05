@@ -1,4 +1,7 @@
 import { mountDither } from './dither-mount.jsx';
+import { installInputGuard } from './input-guard.js';
+
+installInputGuard();
 
 const cards = document.querySelectorAll('.media-card');
 const gallery = document.querySelector('.gallery');

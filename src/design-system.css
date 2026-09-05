@@ -92,6 +92,8 @@
 
 * {
   box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 html,
@@ -110,8 +112,12 @@ body {
 }
 
 img,
-video {
+video,
+a,
+canvas {
   display: block;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .visually-hidden {

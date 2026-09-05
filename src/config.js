@@ -6,6 +6,7 @@ export const MODEL_CONFIGS = {
     initialRotation: [0, 0, 0],
     particleDensity: 1,
     pointSize: 1,
+    screenOffsetX: 0.19,
   },
   2: {
     path: '/models/NO2.obj',
@@ -14,6 +15,7 @@ export const MODEL_CONFIGS = {
     initialRotation: [0, 0, 0],
     particleDensity: 1,
     pointSize: 0.95,
+    screenOffsetX: 0.22,
   },
   3: {
     path: '/models/NO3.obj',
@@ -22,6 +24,7 @@ export const MODEL_CONFIGS = {
     initialRotation: [0, 0, 0],
     particleDensity: 1,
     pointSize: 0.95,
+    screenOffsetX: 0.2,
   },
   4: {
     path: '/models/NO4.obj',
@@ -30,6 +33,7 @@ export const MODEL_CONFIGS = {
     initialRotation: [0, 0, 0],
     particleDensity: 1,
     pointSize: 1,
+    screenOffsetX: 0.205,
   },
 };
 

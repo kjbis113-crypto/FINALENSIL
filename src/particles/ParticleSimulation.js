@@ -43,6 +43,7 @@ export class ParticleSimulation {
         uPointerVelocity: { value: new THREE.Vector3() },
         uPointerActive: { value: 0 },
         uPointerDown: { value: 0 },
+        uPointerHold: { value: 0 },
         uInteractionRadius: { value: parameters.interactionRadius },
         uInteractionStrength: { value: parameters.interactionStrength },
         uCurlStrength: { value: parameters.curlStrength },
@@ -106,6 +107,7 @@ export class ParticleSimulation {
     uniforms.uPointerVelocity.value.copy(pointer.velocity);
     uniforms.uPointerActive.value = pointer.active;
     uniforms.uPointerDown.value = pointer.down;
+    uniforms.uPointerHold.value = pointer.hold;
     uniforms.uInteractionRadius.value = this.parameters.interactionRadius;
     uniforms.uInteractionStrength.value = this.parameters.interactionStrength;
     uniforms.uCurlStrength.value = this.parameters.curlStrength;

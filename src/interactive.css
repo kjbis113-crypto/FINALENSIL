@@ -29,7 +29,22 @@
   pointer-events: none;
 }
 
+.study-frame .ensil-header {
+  top: 4.074%;
+  right: 2.78%;
+  left: 14.655%;
+  height: 6.852%;
+}
+
+.ensil-backdrop {
+  z-index: 2;
+}
+
 .study-number-link {
+  top: 12.037%;
+  bottom: auto;
+  left: var(--number-left);
+  line-height: normal;
   pointer-events: auto;
   transition:
     filter 420ms var(--ease-sweep),
