@@ -24,6 +24,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const zlib = require('zlib');
 const { WebSocketServer } = require('ws');
 
 const WS_PORT = 7777;
@@ -71,6 +72,15 @@ if (serveDir !== 'none' && fs.existsSync(path.join(serveDir, 'index.html'))) {
       }
       const ext = path.extname(file).toLowerCase();
       const headers = { 'Content-Type': MIME[ext] ?? 'application/octet-stream', 'Accept-Ranges': 'bytes' };
+      // 텍스트 계열은 gzip 으로 — OBJ 는 4~5배 줄어든다. 다른 맥이 와이파이로 받는 양이다.
+      // Range 요청(영상 시킹)과는 섞이지 않는다.
+      const compressible = ['.obj', '.js', '.css', '.html', '.json', '.svg', '.txt', '.md'].includes(ext);
+      const acceptsGzip = /\bgzip\b/.test(req.headers['accept-encoding'] ?? '');
+      if (compressible && acceptsGzip && !req.headers.range) {
+        res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' });
+        fs.createReadStream(file).pipe(zlib.createGzip({ level: 6 })).pipe(res);
+        return;
+      }
       // 영상 시킹용 Range 요청 지원
       const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? '');
       if (range) {
