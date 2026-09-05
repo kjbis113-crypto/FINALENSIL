@@ -39,7 +39,7 @@
    same y, so it does not jump between the two. The header keeps the
    design-system gutters — the gallery is the reference for those. */
 .study-number-link {
-  top: calc(var(--u) * 7.2);
+  top: var(--number-top);
   bottom: auto;
   left: var(--number-left);
   pointer-events: auto;

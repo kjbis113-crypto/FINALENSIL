@@ -13,11 +13,12 @@
 .info-page {
   /* Text column runs from the shared gutter, like every other page. */
   --archive-column: calc(var(--u) * 27);        /*  518.4px */
-  --archive-number-top: calc(var(--u) * 7.2);   /*  138.2px */
+  --archive-number-top: var(--number-top);      /* shared with the study page */
   --archive-text-top: calc(var(--u) * 19.84);   /*  381.0px */
   /* One media frame for all four specimens, equal margin above and below. */
   --archive-media-inset: calc(var(--u) * 3.65); /*   70.1px */
   --archive-media-width: calc(var(--u) * 56);   /* 1075.2px */
+  --archive-media-shift: calc(var(--u) * 2);    /*   38.4px — the specimen sits a touch in from the right gutter */
 
   --specimen-scale: 100%;
   --specimen-color-opacity: 1;
@@ -63,7 +64,7 @@
   position: absolute;
   z-index: 1;
   top: var(--archive-media-inset);
-  right: var(--frame-gutter);
+  right: calc(var(--frame-gutter) + var(--archive-media-shift));
   width: var(--archive-media-width);
   height: calc(100% - var(--archive-media-inset) * 2);
   margin: 0;

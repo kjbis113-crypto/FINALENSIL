@@ -42,6 +42,7 @@
   --header-top: calc(var(--u) * 2.75);    /* 52.8px */
   --header-height: calc(var(--u) * 3.86); /* 74.1px */
   --number-left: calc(var(--u) * 2.34);   /* optical inset of the N */
+  --number-top: calc(var(--u) * 8.2);     /* 157.4px — the specimen number under the header, study and archive alike */
 
   /* --- type ---------------------------------------------------- */
   --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -170,7 +171,7 @@ canvas {
   left: var(--frame-gutter);
   display: flex;
   height: var(--header-height);
-  align-items: center;
+  align-items: flex-start; /* the index sits on the logo's top edge, not its centre */
   justify-content: space-between;
   pointer-events: none;
 }
