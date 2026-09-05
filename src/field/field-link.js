@@ -14,7 +14,46 @@ const CHANNEL = 'ensil-field';
 const HEARTBEAT_MS = 2_000;
 const ALIVE_MS = 6_000;
 const RELAY_RECONNECT_MS = 3_000;
-const RELAY_URL = import.meta.env.VITE_FIELD_LINK_URL;
+const BRIDGE_PORT = 7777;
+const BRIDGE_STORAGE_KEY = 'ensil-bridge-host';
+
+/**
+ * 브릿지 주소를 현장에서 손대지 않고 찾는다.
+ *   1) ?bridge=호스트:포트 — 한 번 넣으면 기억한다 (다른 기기에서 열 때)
+ *   2) 빌드 시 VITE_FIELD_LINK_URL
+ *   3) 페이지를 내려준 호스트의 7777 — 브릿지가 사이트도 서빙하므로 이게 기본
+ * https 페이지에서는 ws:// 가 mixed content 로 막히므로 아예 시도하지 않는다.
+ */
+function resolveRelayUrl() {
+  const requested = new URLSearchParams(window.location.search).get('bridge');
+  if (requested) {
+    try {
+      window.localStorage.setItem(BRIDGE_STORAGE_KEY, requested);
+    } catch {
+      /* 저장 불가 — 이번 세션에만 쓴다 */
+    }
+    return `ws://${requested.includes(':') ? requested : `${requested}:${BRIDGE_PORT}`}`;
+  }
+
+  let remembered = null;
+  try {
+    remembered = window.localStorage.getItem(BRIDGE_STORAGE_KEY);
+  } catch {
+    /* 저장소 접근 불가 */
+  }
+  if (remembered) {
+    return `ws://${remembered.includes(':') ? remembered : `${remembered}:${BRIDGE_PORT}`}`;
+  }
+
+  if (import.meta.env.VITE_FIELD_LINK_URL) return import.meta.env.VITE_FIELD_LINK_URL;
+
+  if (window.location.protocol === 'https:') return null;
+  const host = window.location.hostname;
+  if (!host) return null;
+  return `ws://${host}:${BRIDGE_PORT}`;
+}
+
+const RELAY_URL = resolveRelayUrl();
 
 function openBroadcast(onEnvelope) {
   if (typeof BroadcastChannel === 'undefined') return null;
