@@ -40,7 +40,11 @@ const world = new HabitatWorld({
   paused: false,
   onLoaded: (loaded, total) => {
     if (loaded >= total) {
-      loadingLabel.remove();
+      // Reveal one drawn frame after the last cloud attaches, past the shader-compile stutter.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        loadingLabel.remove();
+        mount.classList.add('is-ready');
+      }));
       return;
     }
     loadingLabel.textContent = `ECOLOGIES GENERATING / ${String(loaded).padStart(2, '0')}—${String(total).padStart(2, '0')}`;

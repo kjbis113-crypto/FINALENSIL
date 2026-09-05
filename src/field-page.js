@@ -58,7 +58,12 @@ const world = new HabitatWorld({
   paused: false,
   onLoaded: (loaded, total) => {
     if (loaded >= total) {
-      loading.remove();
+      // Two frames: the first draw with particles compiles their shaders and
+      // stutters; reveal after it so the fade-in is the first thing anyone sees.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        loading.remove();
+        mount.classList.add('is-ready');
+      }));
       return;
     }
     loading.textContent = `ECOLOGIES GENERATING / ${String(loaded).padStart(2, '0')}—${String(total).padStart(2, '0')}`;

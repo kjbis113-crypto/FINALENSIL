@@ -56,6 +56,13 @@
   width: 100%;
   height: 100%;
   touch-action: none;
+  /* Held back until the point clouds are built and drawn once — no placeholder flash. */
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+.ecosystem-canvas.is-ready canvas {
+  opacity: 1;
 }
 
 .ecosystem-loading {
@@ -75,22 +82,24 @@
   left: var(--stage-chrome-x);
   display: flex;
   justify-content: flex-end;
-  font-size: var(--stage-fs-micro);
+  /* Operator-only: small and faint. */
+  color: rgb(0 41 40 / 0.3);
+  font-size: calc(var(--stage-fs-micro) * 0.85); /* ~7px */
   letter-spacing: 0.1em;
   pointer-events: none;
 }
 
 .stage-page__meta i {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 8px;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
   border-radius: 50%;
-  background: var(--stage-hairline);
+  background: currentColor;
 }
 
 .stage-page__meta i[data-alive="true"] {
-  background: var(--stage-key);
+  background: rgb(88 214 195 / 0.65);
 }
 
 .stage-page__hint {
