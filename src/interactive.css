@@ -31,22 +31,17 @@
   pointer-events: none;
 }
 
-.study-frame .ensil-header {
-  top: 4.074%;
-  right: 2.78%;
-  left: 14.655%;
-  height: 6.852%;
-}
-
 .ensil-backdrop {
   z-index: 2;
 }
 
+/* The number sits top left here as it does on the archive entry, at the
+   same y, so it does not jump between the two. The header keeps the
+   design-system gutters — the gallery is the reference for those. */
 .study-number-link {
-  top: 12.037%;
+  top: calc(var(--u) * 7.2);
   bottom: auto;
   left: var(--number-left);
-  line-height: normal;
   pointer-events: auto;
   transition:
     filter 420ms var(--ease-sweep),

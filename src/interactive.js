@@ -18,11 +18,6 @@ const numberLabel = infoLink.querySelector('.object-number');
 const objectId = Math.min(4, Math.max(1, Number(new URLSearchParams(window.location.search).get('id')) || 1));
 const numberText = objectId === 1 ? 'NO.1' : `NO. ${objectId}`;
 
-document.querySelector('.study-frame').style.setProperty(
-  '--number-left',
-  `${((objectId === 1 ? 281 : 278) / 1920) * 100}%`,
-);
-
 for (const link of [infoLink, headerLink]) {
   link.href = `/info.html?id=${objectId}`;
 }
