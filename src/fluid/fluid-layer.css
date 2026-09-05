@@ -1,0 +1,18 @@
+/* ================================================================
+   Cursor fluid (src/fluid/fluid-layer.js)
+
+   A green liquid laid over the field canvas, following the pointer
+   on Field 1 and the relayed pointer on the projector stage. It
+   multiplies onto the page: green on the white paper, and the dark
+   ink of the point clouds shows through it rather than being covered.
+   Never intercepts the pointer.
+   ================================================================ */
+
+.fluid-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}

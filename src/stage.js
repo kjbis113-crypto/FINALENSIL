@@ -11,6 +11,9 @@ import { HabitatWorld } from './field/HabitatWorld';
 import { CREATURE_RECORDS } from './field/creatureRecords';
 import { openFieldLink } from './field/field-link';
 import { isStageShortcut } from './stage-window';
+import { commonFieldHeight } from './field/CommonFieldLandscape';
+import { mapCursorToPeer } from './field/cursor-map.js';
+import { createFluidLayer, createFluidStroke, createFluidPool } from './fluid/fluid-layer.js';
 
 const SNAPSHOT_INTERVAL_MS = 1_000;
 
@@ -64,8 +67,78 @@ const world = new HabitatWorld({
   onImmersiveChange: () => undefined,
 });
 
+/* --- 콘솔(필드 1) 커서 → 초록 유체 ------------------------------------------
+ * 필드 1 의 커서가 화면 좌표(s)와 월드 좌표(p)로 함께 건너온다 (메시지 모양은 field-page.js 참고).
+ * 카메라는 view 메시지로 콘솔과 같은 각도에 맞춰져 있으므로, 개체에서 먼 곳은 화면 좌표를 그대로 쓴다 —
+ * 관람객이 보는 자리에 그대로 뜬다. 개체 근처에서는 그 순간 필드 1 의 개체 위치(a)와 이쪽 개체 위치를
+ * 맞춰 "그 개체로부터의 오프셋"으로 옮긴 뒤(field/cursor-map.js) 이 카메라로 투영한다 — 두 필드의
+ * 개체는 각자 배회하고 지형 높이도 다르지만, NO.2 를 더듬으면 프로젝터에서도 NO.2 위에 초록 액체가
+ * 흐르고, 멈추면 그 위에 고인다. 커서 자체(원)는 그리지 않는다 — 유체만.
+ */
+const fluid = createFluidLayer({ parent: mount });
+// 점이 약 30Hz 로 오므로(필드 1 의 절반) 한 점당 힘과 염료를 키워 같은 굵기로 맞춘다
+const stroke = createFluidStroke(fluid, { gain: 2.2, dyeGain: 1.5 });
+const pool = createFluidPool(fluid);
+/** 필드 1 커서가 마지막으로 놓인 자리 — 이쪽 월드 좌표(개체 기준으로 옮긴 것)와 필드 1 화면 좌표 */
+let cursorWorld = null;
+let cursorScreen = null;
+
+/** 화면 좌표(먼 곳)와 개체 기준 투영(가까운 곳)을 anchored 가중으로 섞는다. 카메라가 돌므로 매 프레임 다시 계산. */
+function projectCursor() {
+  if (!cursorWorld && !cursorScreen) return null;
+  const anchored = cursorWorld && cursorWorld.anchored > 0 ? world.fieldToScreen(cursorWorld) : null;
+  let screen = cursorScreen;
+  if (anchored && cursorScreen) {
+    const t = cursorWorld.anchored;
+    screen = { x: cursorScreen.x + (anchored.x - cursorScreen.x) * t, y: cursorScreen.y + (anchored.y - cursorScreen.y) * t };
+  } else if (anchored) {
+    screen = anchored;
+  }
+  if (!screen || screen.x < -0.05 || screen.x > 1.05 || screen.y < -0.05 || screen.y > 1.05) return null;
+  return screen;
+}
+
+function handleCursor(msg) {
+  if (!fluid) return;
+  if (!msg.p) {
+    cursorWorld = null;
+    cursorScreen = null;
+    stroke.reset();
+    pool.stop();
+    return;
+  }
+  const fromAnchors = (msg.a ?? []).map(([id, x, z]) => ({ id, x, z }));
+  cursorWorld = mapCursorToPeer(
+    { x: msg.p[0], z: msg.p[1], h: msg.p[2] },
+    fromAnchors,
+    world.getCreatureAnchors(),
+    { hover: msg.hover, groundHeight: commonFieldHeight },
+  );
+  cursorScreen = Array.isArray(msg.s) ? { x: msg.s[0], y: msg.s[1] } : null;
+  const screen = projectCursor();
+  if (!screen) {
+    stroke.reset();
+    pool.stop();
+    return;
+  }
+  stroke.move(screen.x, screen.y);
+  if (msg.hover) pool.start(projectCursor);
+  else pool.stop();
+}
+
+/** 콘솔 카메라 각도 — 1초마다 온다. 끊기면 잠시 뒤 자기 벽시계로 돌아간다. */
+const VIEW_STALE_MS = 5_000;
+let viewTimer = 0;
+function handleView(msg) {
+  world.setAmbientAngle(typeof msg.angle === 'number' ? msg.angle : null);
+  window.clearTimeout(viewTimer);
+  viewTimer = window.setTimeout(() => world.setAmbientAngle(null), VIEW_STALE_MS);
+}
+
 link = openFieldLink('stage', {
   onMessage: (msg) => {
+    if (msg.type === 'cursor') handleCursor(msg);
+    if (msg.type === 'view') handleView(msg);
     if (msg.type === 'pulse') {
       world.activate(msg.id, msg.strength);
       flashPulse();
@@ -114,6 +187,13 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('pagehide', () => {
+  pool.stop();
+  fluid?.dispose();
   world.dispose();
   link.close();
 });
+
+// 검증용 — ?debug=true 면 필드·유체·마지막 커서 자리를 콘솔에 노출한다
+if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+  window.__ENSIL__ = { world, fluid, get cursorWorld() { return cursorWorld; }, get cursorScreen() { return cursorScreen; }, projectCursor };
+}

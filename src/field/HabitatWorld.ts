@@ -106,6 +106,27 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+/**
+ * 필드 링크(커서 중계)용 — 포인터가 지형을 못 맞혔을 때 대신 쓰는 지평면 높이와, 그 점을 가두는 범위.
+ * 공용 지형(104×78)의 절반이다. 낮은 카메라라 지평선 근처의 지형 점은 한없이 멀어질 수 있다.
+ */
+const LINK_PLANE_Y = 0;
+const LINK_BOUNDS = { x: 52, z: 39 };
+
+/**
+ * 앰비언트 카메라(필드 1·2 공통)의 회전 속도 — 약 3분에 한 바퀴.
+ * 페이지 시각이 아니라 벽시계(Date.now)에 건다: 아이맥의 필드 1 과 맥미니의 필드 2 가 같은 각도에서 보게.
+ * 필드 1 의 커서를 필드 2 에 옮겨 그릴 때 두 화면이 같은 자리를 보고 있어야 유체가 같은 곳에 뜬다.
+ * 두 맥의 시계가 몇 초 어긋나도 1초 = 약 2° 라 눈에 띄지 않는다.
+ */
+const AMBIENT_ORBIT_RATE = 0.000035;
+
+/** 포인터가 가리키는 월드 점. creature 는 개체 표면을 맞혔을 때 그 개체 id. */
+export type PointerFieldPoint = { x: number; y: number; z: number; creature: string | null };
+
+/** 개체 밑동의 월드 위치 — 필드 1 ↔ 필드 2 가 서로의 개체 자리를 맞춰 보는 기준점 */
+export type CreatureAnchor = { id: string; x: number; y: number; z: number };
+
 function damp(current: number, target: number, smoothing: number, dt: number) {
   return THREE.MathUtils.lerp(current, target, 1 - Math.exp(-smoothing * dt));
 }
@@ -226,6 +247,14 @@ export class HabitatWorld {
   private fieldReferenceLandscape: FieldReferenceLandscape | null = null;
   private lastPointerClient = new THREE.Vector2();
   private hasPointerClient = false;
+  /** 마지막 pointermove 가 가리킨 월드 점 (개체 표면 > 지형 > 지평면 순). 하늘이면 null. */
+  private pointerField: PointerFieldPoint | null = null;
+  /**
+   * 상대(콘솔) 카메라 각도와 내 벽시계 각도의 차. 스테이지가 콘솔의 view 메시지로 맞춘다 —
+   * 두 맥의 시계가 어긋나도 프로젝터가 아이맥과 같은 각도에서 보게. 콘솔이 사라지면 0 으로 돌아간다.
+   */
+  private ambientOffset = 0;
+  private ambientOffsetTarget = 0;
 
   constructor(options: HabitatWorldOptions) {
     this.options = options;
@@ -668,6 +697,30 @@ export class HabitatWorld {
       this.hoveredId = nextHovered;
       this.options.onProximity?.(nextHovered);
     }
+
+    // 필드 링크용 — 같은 레이캐스트 결과를 재사용한다 (한 번 더 쏘지 않는다)
+    if (hit && nextHovered) {
+      this.pointerField = { x: hit.point.x, y: hit.point.y, z: hit.point.z, creature: nextHovered };
+    } else if (terrainHit) {
+      this.pointerField = { x: terrainHit.point.x, y: terrainHit.point.y, z: terrainHit.point.z, creature: null };
+    } else {
+      this.pointerField = this.pointerOnHorizon();
+    }
+  }
+
+  /** 지형을 못 맞힌 포인터를 지평면(y = LINK_PLANE_Y)에 내려놓는다. 지평선 위(하늘)면 null. */
+  private pointerOnHorizon(): PointerFieldPoint | null {
+    const { origin, direction } = this.raycaster.ray;
+    if (Math.abs(direction.y) < 1e-5) return null;
+    const t = (LINK_PLANE_Y - origin.y) / direction.y;
+    if (t <= 0) return null;
+    this.raycaster.ray.at(t, this.scratchWorld);
+    return {
+      x: clamp(this.scratchWorld.x, -LINK_BOUNDS.x, LINK_BOUNDS.x),
+      y: LINK_PLANE_Y,
+      z: clamp(this.scratchWorld.z, -LINK_BOUNDS.z, LINK_BOUNDS.z),
+      creature: null,
+    };
   }
 
   private handlePointerMove = (event: PointerEvent) => {
@@ -685,6 +738,7 @@ export class HabitatWorld {
 
   private handlePointerLeave = () => {
     this.hasPointerClient = false;
+    this.pointerField = null;
     this.pointerBiomeId = null;
     this.hoveredId = null;
     this.options.onProximity?.(null);
@@ -771,6 +825,48 @@ export class HabitatWorld {
     runtime.state.activity = Math.min(1, runtime.state.activity + 0.34 * strength);
     runtime.state.signalStrength = Math.min(1, runtime.state.signalStrength + 0.42 * strength);
     runtime.state.tension = Math.min(1, runtime.state.tension + 0.16 * strength);
+  }
+
+  /* --- 필드 링크 (field-page.js ↔ stage.js) --------------------------------
+   * 두 필드의 카메라는 각자 돌고 개체도 각자 배회하므로 화면 좌표는 서로 쓸 수 없다.
+   * 월드 좌표와 개체 위치를 주고받고, 받은 쪽이 자기 카메라로 다시 투영한다. */
+
+  /** 마지막 pointermove 가 가리킨 월드 점. 개체 표면이면 그 개체 id 가 붙는다. 하늘이면 null. */
+  getPointerField(): PointerFieldPoint | null {
+    return this.pointerField;
+  }
+
+  /** 개체 밑동(creatureRoot)의 현재 월드 위치 */
+  getCreatureAnchors(): CreatureAnchor[] {
+    return Array.from(this.runtimes.values()).map((runtime) => {
+      const world = runtime.creatureRoot.getWorldPosition(this.scratchWorld);
+      return { id: runtime.record.id, x: world.x, y: world.y, z: world.z };
+    });
+  }
+
+  /** 월드 점 → 캔버스 기준 정규화 화면 좌표(0~1, 위=0). 카메라 뒤에 있으면 null. */
+  fieldToScreen(point: { x: number; y: number; z: number }): { x: number; y: number } | null {
+    this.camera.updateMatrixWorld();
+    this.camera.matrixWorldInverse.copy(this.camera.matrixWorld).invert();
+    this.scratchWorld.set(point.x, point.y, point.z).applyMatrix4(this.camera.matrixWorldInverse);
+    if (this.scratchWorld.z > -0.1) return null; // 카메라는 -z 를 본다
+    this.scratchWorld.applyMatrix4(this.camera.projectionMatrix);
+    return { x: (this.scratchWorld.x + 1) / 2, y: (1 - this.scratchWorld.y) / 2 };
+  }
+
+  /** 지금 앰비언트 카메라가 쓰는 각도(rad). 필드 1 이 1초마다 스테이지에 보낸다. */
+  getAmbientAngle() {
+    return Date.now() * AMBIENT_ORBIT_RATE + this.ambientOffset;
+  }
+
+  /** 상대(콘솔) 카메라 각도를 최단 호로 부드럽게 따라간다. null 이면 자기 벽시계로 돌아간다. */
+  setAmbientAngle(angle: number | null) {
+    if (angle === null || !Number.isFinite(angle)) {
+      this.ambientOffsetTarget = 0;
+      return;
+    }
+    const delta = angle - Date.now() * AMBIENT_ORBIT_RATE;
+    this.ambientOffsetTarget = Math.atan2(Math.sin(delta), Math.cos(delta));
   }
 
   enterFirstPerson() {
@@ -986,8 +1082,9 @@ export class HabitatWorld {
     if (this.options.mode === 'field') {
       this.fieldController?.update(dt);
       if (this.options.ambient && !this.fieldController?.isActive && !this.reducedMotion) {
-        // 약 3분에 한 바퀴 — 정지 화면처럼 보이지 않을 만큼만
-        const angle = now * 0.000035;
+        // 약 3분에 한 바퀴 — 정지 화면처럼 보이지 않을 만큼만. 벽시계 기준인 이유는 AMBIENT_ORBIT_RATE 참고.
+        this.ambientOffset = damp(this.ambientOffset, this.ambientOffsetTarget, 1.6, dt);
+        const angle = Date.now() * AMBIENT_ORBIT_RATE + this.ambientOffset;
         const x = Math.sin(angle) * 27;
         const z = Math.cos(angle) * 27;
         this.camera.position.set(x, commonFieldHeight(x, z) + 3.2, z);

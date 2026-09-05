@@ -15,7 +15,7 @@
  *   목업 → 웹   {"type":"trigger","unit":2,"action":"detect","intensity":0.8}
  *   웹 → 목업   {"type":"act","unit":2,"action":"pulse","intensity":1}
  *   목업 → 웹   {"type":"hello","unit":2,"name":"tendon"}   (접속 시)
- *   창 ↔ 창     {"type":"field", ...}  (필드1 ↔ 필드2, src/field/field-link.js)
+ *   창 ↔ 창     {"type":"field", ...}  (필드1 ↔ 필드2, src/field/field-link.js — focus/pulse/snapshot/cursor)
  *
  * 의존성은 ws 하나뿐이다 — 네이티브 빌드가 없어 구형 맥에서도 설치가 깨지지 않는다.
  */
@@ -156,8 +156,14 @@ wss.on('connection', (ws, req) => {
       if (mockup) fetch(`http://${mockup.host}/api/click?n=${level}`).catch(() => {});
     }
 
-    // 보낸 쪽을 뺀 나머지 전부에게 그대로 중계
-    for (const client of clients) if (client !== ws && client.readyState === 1) client.send(text);
+    // 보낸 쪽을 뺀 나머지 전부에게 그대로 중계 — 단, 창↔창 봉투(field: 커서가 약 30Hz 로 온다)는
+    // WS 로 붙은 목업(ESP32)에게는 보내지 않는다. 목업은 act 만 알면 된다.
+    const browsersOnly = msg.type === 'field';
+    for (const client of clients) {
+      if (client === ws || client.readyState !== 1) continue;
+      if (browsersOnly && units.has(client)) continue;
+      client.send(text);
+    }
   });
 });
 
