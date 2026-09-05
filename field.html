@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-page="field">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="ENSIL field — the shared habitat of the four organisms." />
+    <title>FIELD — ENSIL</title>
+    <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/field-page.css" />
+  </head>
+  <body>
+    <main class="field-page">
+      <div class="field-canvas" id="field-mount">
+        <span class="field-loading" id="field-loading">ECOLOGIES GENERATING / 00—04</span>
+      </div>
+
+      <header class="ensil-header">
+        <a class="ensil-logo" href="/" aria-label="ENSIL home">
+          <img src="/assets/ensil-logo.png" alt="ENSIL" />
+        </a>
+
+        <nav class="ensil-nav" aria-label="ENSIL index">
+          <a class="ensil-nav-link" href="/">INDEX</a>
+          <a class="ensil-nav-link" href="/field.html" aria-current="page">FIELD</a>
+        </nav>
+      </header>
+
+      <div class="field-meta" aria-hidden="true">
+        <span>ENSIL / COMMON FIELD</span>
+        <span><i id="stage-dot" data-alive="false"></i><span id="stage-label">STAGE OFFLINE</span></span>
+      </div>
+
+      <div class="field-readout" id="field-readout" aria-live="polite" data-open="false">
+        <span class="field-readout__code" id="readout-code"></span>
+        <span class="field-readout__sensor" id="readout-sensor"></span>
+        <a class="ensil-nav-link" id="readout-link" href="/info.html?id=1">OPEN ARCHIVE RECORD</a>
+      </div>
+
+      <p class="field-hint">HOVER TO FIND A SIGNAL · CLICK TO WAKE IT</p>
+    </main>
+
+    <script type="module" src="/src/field-page.js"></script>
+  </body>
+</html>

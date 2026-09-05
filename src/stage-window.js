@@ -16,19 +16,33 @@ export function isStagePage() {
   return window.location.pathname.endsWith(STAGE_PATH);
 }
 
-export async function openStageWindow() {
-  const url = `${STAGE_PATH}${window.location.search}`;
-  // features 없이 열면 '탭'이 되고, 배경 탭은 rAF 가 멈춰 필드가 얼어붙는다 — 항상 독립 창(popup)으로
-  let features = 'popup=1,width=1920,height=1080';
+/**
+ * 두 번째 화면이 있으면 그쪽으로 옮긴다. 창을 연 뒤에 하는 이유:
+ * getScreenDetails() 는 첫 호출에 권한을 묻는데, 그걸 window.open 앞에서 await 하면
+ * 사용자 제스처 유효시간이 만료돼 팝업이 조용히 차단된다.
+ */
+async function placeOnSecondScreen(stage) {
   try {
     const details = await window.getScreenDetails?.();
     const other = details?.screens.find((screen) => screen !== details.currentScreen);
-    if (other) features = `left=${other.availLeft},top=${other.availTop},width=${other.availWidth},height=${other.availHeight}`;
+    if (!other || stage.closed) return;
+    stage.moveTo(other.availLeft, other.availTop);
+    stage.resizeTo(other.availWidth, other.availHeight);
   } catch {
-    /* 권한 거부 또는 미지원 — 현재 화면에 연다 */
+    /* 권한 거부 또는 미지원 — 현재 화면에 그대로 둔다 */
   }
-  const stage = window.open(url, STAGE_WINDOW_NAME, features);
-  stage?.focus();
+}
+
+export function openStageWindow() {
+  const url = `${STAGE_PATH}${window.location.search}`;
+  // features 없이 열면 '탭'이 되고, 배경 탭은 rAF 가 멈춰 필드가 얼어붙는다 — 항상 독립 창(popup)으로
+  const stage = window.open(url, STAGE_WINDOW_NAME, 'popup=1,width=1920,height=1080');
+  if (!stage) {
+    console.warn('[ENSIL] 스테이지 창이 차단되었습니다 — 이 사이트의 팝업을 허용해 주세요.');
+    return null;
+  }
+  stage.focus();
+  void placeOnSecondScreen(stage);
   return stage;
 }
 
