@@ -1,4 +1,5 @@
 import { mountDither } from './dither-mount.jsx';
+import { installStageShortcut } from './stage-window.js';
 import { revealEncryptedCollection } from './components/ui/encrypted-text.js';
 
 /**
@@ -108,3 +109,6 @@ function returnToInteraction(event) {
 
 numberLink.addEventListener('click', returnToInteraction);
 backLink.addEventListener('click', returnToInteraction);
+
+// 운영용 — Ctrl+Alt+Shift+O 로 빔프로젝터 스테이지 창을 연다.
+installStageShortcut();
