@@ -29,7 +29,7 @@ export const MODEL_CONFIGS = {
   4: {
     path: '/models/NO4.obj',
     scale: 1,
-    rotation: [Math.PI / 2, 0, 0],
+    rotation: [0, 0, 0],
     initialRotation: [0, 0, 0],
     particleDensity: 1,
     pointSize: 1,

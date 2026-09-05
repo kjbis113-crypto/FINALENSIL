@@ -25,13 +25,10 @@ const FIELD_INK = new THREE.Color(0x002928);
 const FIELD_POINT_SIZE_BOOST = 10;
 
 /**
- * 아카이브는 개체를 정면에서 보지만 필드는 위에서 내려다본다. MODEL_CONFIGS 의 rotation 은
- * 아카이브 기준이라, 필드에서 눕혀야 하는 개체는 여기서 한 번 더 돌린다.
- * NO.4(전구 군집)는 정면 기준으로 세워져 있어 X 축 -90° 로 갓이 위를 보게 눕힌다.
+ * MODEL_CONFIGS 의 rotation 위에 필드에서만 더 돌려야 하는 개체가 있으면 여기에.
+ * 지금은 없다 — NO.4 도 아카이브와 필드가 같은 방향(OBJ 원래 방향, 갓이 위)을 쓴다.
  */
-const FIELD_ROTATION = {
-  4: [-Math.PI / 2, 0, 0],
-};
+const FIELD_ROTATION = {};
 
 /** 아카이브 프래그먼트 셰이더의 필드 변형 — 같은 감쇠·열감, 색만 잉크. */
 const fieldFragmentShader = particlesFragmentShader

@@ -212,10 +212,6 @@
   font-weight: 700;
 }
 
-.info-page[data-creature="1"] .character-detail {
-  margin-top: 1.8em;
-}
-
 .info-page[data-creature="4"] .fact-story p {
   font-family:
     "KoPubWorldDotum",
