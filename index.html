@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="gallery">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,7 @@
     />
     <title>ENSIL</title>
     <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/design-system.css" />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
@@ -26,14 +27,16 @@
       </filter>
     </svg>
 
-    <main class="stage" aria-labelledby="page-title">
-      <div class="dither-background" id="dither-background" aria-hidden="true"></div>
+    <div class="ensil-backdrop" id="dither-background" aria-hidden="true"></div>
 
+    <main class="ensil-frame gallery-frame" aria-labelledby="page-title">
       <h1 id="page-title" class="visually-hidden">ENSIL moving image gallery</h1>
 
-      <a class="brand" href="/" aria-label="ENSIL home">
-        <img src="/assets/ensil-logo.png" alt="ENSIL" />
-      </a>
+      <header class="ensil-header">
+        <a class="ensil-logo" href="/" aria-label="ENSIL home">
+          <img src="/assets/ensil-logo.png" alt="ENSIL" />
+        </a>
+      </header>
 
       <section class="gallery" aria-label="Featured moving images">
         <a

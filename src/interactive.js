@@ -9,11 +9,13 @@ mountDither(document.querySelector('#dither-background'), {
 });
 const experience = new Experience(sceneElement);
 const infoLink = document.querySelector('.study-number-link');
+const headerLink = document.querySelector('.study-info-link');
 const numberLabel = infoLink.querySelector('.object-number');
 const objectId = Math.min(4, Math.max(1, Number(new URLSearchParams(window.location.search).get('id')) || 1));
 
-infoLink.href = `/info.html?id=${objectId}`;
-infoLink.setAttribute('aria-label', `Read information about NO. ${objectId}`);
+for (const link of [infoLink, headerLink]) {
+  link.href = `/info.html?id=${objectId}`;
+}
 
 revealEncryptedText(numberLabel, {
   text: `NO. ${objectId}`,
@@ -22,15 +24,31 @@ revealEncryptedText(numberLabel, {
   maxDurationMs: 1200,
 });
 
-infoLink.addEventListener('click', (event) => {
+revealEncryptedText(headerLink, {
+  text: 'READ INFORMATION',
+  revealDelayMs: 50,
+  startDelayMs: 260,
+  maxDurationMs: 1100,
+});
+
+// The scramble writes its own aria-label, so restore the spoken one after it.
+for (const link of [infoLink, headerLink]) {
+  link.setAttribute('aria-label', `Read information about NO. ${objectId}`);
+}
+
+const openInformation = (event) => {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
   event.preventDefault();
+  const destination = event.currentTarget.href;
   document.body.classList.add('is-leaving');
   window.setTimeout(() => {
-    window.location.assign(infoLink.href);
+    window.location.assign(destination);
   }, 560);
-});
+};
+
+infoLink.addEventListener('click', openInformation);
+headerLink.addEventListener('click', openInformation);
 
 if (new URLSearchParams(window.location.search).get('debug') === 'true') {
   window.__ENSIL__ = experience;

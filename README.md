@@ -15,6 +15,22 @@ pnpm dev
 pnpm build
 ```
 
+## Design system
+
+`src/design-system.css` holds the tokens and layout primitives every page shares, and each
+page links it before its own stylesheet. Geometry is written against one 16:9 stage of
+1920 × 1080 units: `--u` is 1% of that stage's width and is the spacing unit for both axes,
+so a value lands on the same pixel on the gallery, the field and the archive.
+
+- `.ensil-backdrop` — the dither, edge to edge behind every page.
+- `.ensil-frame` — the centred 16:9 stage that carries the composition.
+- `.ensil-header` — logo left, navigation link right, on a shared gutter.
+- `.ensil-number` — the large specimen number, anchored to the bottom gutter so it does not
+  move between `interactive.html` and `info.html`.
+
+Page themes are selected with `data-page` on `<html>`: `gallery` (paper), `field` (void) and
+the default archive (ink).
+
 ## Interaction
 
 The original four gallery videos remain the main-page previews. The transparent area around each object is not clickable; selecting the visible object opens `interactive.html?id=1` through `id=4`.

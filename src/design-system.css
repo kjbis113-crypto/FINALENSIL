@@ -1,0 +1,304 @@
+/* ================================================================
+   ENSIL — design system
+   Shared tokens and layout primitives for every page of the archive.
+   Geometry is expressed against one 16:9 stage of 1920 x 1080 units,
+   so a value written here lands on the same pixel on all three pages.
+   ================================================================ */
+
+:root {
+  /* --- palette ------------------------------------------------- */
+  --ensil-ink: #192527;
+  --ensil-void: #000;
+  --ensil-paper: #fff;
+  --ensil-graphite: #191919;
+  --ensil-ghost: #737373;
+  --ensil-wash: #012227;
+
+  /* --- page theme (overridden per page below) ------------------ */
+  --page-bg: var(--ensil-ink);
+  --page-fg: var(--ensil-paper);
+  --logo-filter: grayscale(1) brightness(0) invert(1);
+  --backdrop-opacity: 0.34;
+  --backdrop-blend: normal;
+
+  /* --- frame ---------------------------------------------------
+     One 16:9 stage, centred in the viewport. --u is 1% of its width
+     (19.2px on a 1920 frame) and doubles as the spacing unit for
+     both axes, so horizontal and vertical rhythm stay equal. */
+  --frame-width: min(100vw, 177.7778svh);
+  --frame-height: min(100svh, 56.25vw);
+  --u: min(1vw, 1.777778svh);
+
+  /* --- spacing scale ------------------------------------------- */
+  --space-1: calc(var(--u) * 0.5);    /*   9.6px */
+  --space-2: calc(var(--u) * 1);      /*  19.2px */
+  --space-3: calc(var(--u) * 1.5);    /*  28.8px */
+  --space-4: calc(var(--u) * 2);      /*  38.4px */
+  --space-5: calc(var(--u) * 2.78);   /*  53.4px — frame gutter */
+  --space-6: calc(var(--u) * 3.65);   /*  70.1px */
+  --space-7: calc(var(--u) * 5.5);    /* 105.6px */
+
+  --frame-gutter: var(--space-5);
+  --header-top: calc(var(--u) * 2.75);    /* 52.8px */
+  --header-height: calc(var(--u) * 3.86); /* 74.1px */
+  --number-left: calc(var(--u) * 2.34);   /* optical inset of the N */
+
+  /* --- type ---------------------------------------------------- */
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body:
+    "KoPubWorldDotum", "Pretendard Variable", Pretendard,
+    "Apple SD Gothic Neo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --type-display: calc(var(--u) * 10.4167);  /* 200px */
+  --type-heading: calc(var(--u) * 1.640625); /*  31.5px */
+  --type-body: calc(var(--u) * 0.9375);      /*  18px */
+  --type-label: calc(var(--u) * 0.9375);     /*  18px */
+
+  --leading-display: 1;
+  --leading-heading: 1.5;
+  --leading-body: 1.8;
+  --tracking-display: -0.07em;
+  --tracking-text: -0.02em;
+
+  --rule-weight: max(1px, calc(var(--u) * 0.0521));
+
+  /* --- motion -------------------------------------------------- */
+  --ease-sweep: cubic-bezier(0.77, 0, 0.18, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-lift: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1: 180ms;
+  --dur-2: 360ms;
+  --dur-3: 520ms;
+  --dur-4: 820ms;
+
+  color: var(--page-fg);
+  background: var(--page-bg);
+  font-family: var(--font-display);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+[data-page="gallery"] {
+  --page-bg: var(--ensil-paper);
+  --page-fg: var(--ensil-graphite);
+  --logo-filter: grayscale(1) brightness(0);
+}
+
+[data-page="field"] {
+  --page-bg: var(--ensil-void);
+  --backdrop-opacity: 0.18;
+  --backdrop-blend: screen;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 320px;
+  margin: 0;
+  background: var(--page-bg);
+}
+
+/* Every page centres one frame in the viewport the same way. */
+body {
+  display: grid;
+  min-height: 100svh;
+  overflow: hidden;
+  place-items: center;
+}
+
+img,
+video {
+  display: block;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.filter-definitions {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* --- backdrop --------------------------------------------------
+   The dither runs edge to edge on every page. Scoped to the frame
+   it left bare bands beside the composition. */
+.ensil-backdrop {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  mix-blend-mode: var(--backdrop-blend);
+  opacity: var(--backdrop-opacity);
+  pointer-events: none;
+}
+
+/* --- frame ----------------------------------------------------- */
+.ensil-frame {
+  position: relative;
+  z-index: 1;
+  width: var(--frame-width);
+  height: var(--frame-height);
+}
+
+/* --- header row ------------------------------------------------ */
+.ensil-header {
+  position: absolute;
+  z-index: 5;
+  top: var(--header-top);
+  right: var(--frame-gutter);
+  left: var(--frame-gutter);
+  display: flex;
+  height: var(--header-height);
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.ensil-header > * {
+  pointer-events: auto;
+}
+
+.ensil-logo {
+  display: block;
+  height: 100%;
+  color: inherit;
+  outline: none;
+  transition: opacity var(--dur-1) ease;
+}
+
+.ensil-logo img {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  filter: var(--logo-filter);
+}
+
+.ensil-logo:hover,
+.ensil-logo:focus-visible {
+  opacity: 0.68;
+}
+
+.ensil-logo:focus-visible {
+  outline: var(--rule-weight) solid currentColor;
+  outline-offset: var(--space-1);
+}
+
+/* --- links ----------------------------------------------------- */
+.ensil-nav-link {
+  position: relative;
+  color: var(--page-fg);
+  font-family: var(--font-display);
+  font-size: var(--type-label);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: var(--tracking-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ensil-nav-link::before {
+  position: absolute;
+  right: 0;
+  bottom: -0.42em;
+  left: 0;
+  height: var(--rule-weight);
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--dur-2) var(--ease-sweep);
+}
+
+.ensil-nav-link:hover::before,
+.ensil-nav-link:focus-visible::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* --- the specimen number ---------------------------------------
+   Anchored from the bottom on both the field and the archive page
+   so the type does not jump when you move between them. The 0.23em
+   correction drops the em box descender slack onto the gutter. */
+.ensil-number {
+  position: absolute;
+  z-index: 4;
+  bottom: calc(var(--frame-gutter) - 0.23em);
+  left: var(--number-left);
+  color: var(--page-fg);
+  font-family: var(--font-display);
+  font-size: var(--type-display);
+  font-weight: 400;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ensil-number > * {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.ensil-number::after {
+  position: absolute;
+  right: 0.01em;
+  bottom: 0.08em;
+  left: 0.05em;
+  height: 0.018em;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--dur-2) var(--ease-sweep);
+}
+
+.ensil-number:hover::after,
+.ensil-number:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* --- encrypted reveal ------------------------------------------ */
+.encrypted-text-active {
+  color: var(--page-fg);
+}
+
+.encrypted-char {
+  color: var(--ensil-ghost);
+  transition: color 90ms linear;
+}
+
+.encrypted-char.is-revealed {
+  color: var(--page-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ensil-backdrop {
+    opacity: calc(var(--backdrop-opacity) * 0.7);
+  }
+}

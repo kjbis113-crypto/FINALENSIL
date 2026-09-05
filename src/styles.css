@@ -1,98 +1,11 @@
-:root {
-  --ink: #191919;
-  color: var(--ink);
-  background: #fff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-}
+/* ================================================================
+   Gallery (index.html)
+   Tokens, frame, header, backdrop and reduced motion all come from
+   design-system.css. Only the specimen collage lives here.
+   ================================================================ */
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  min-width: 320px;
-  min-height: 100%;
-  margin: 0;
-  background: #fff;
-}
-
-body {
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-
-img,
-video {
-  display: block;
-}
-
-.filter-definitions {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.stage {
-  position: relative;
-  width: min(100vw, 177.7778svh);
-  aspect-ratio: 16 / 9;
-  overflow: visible;
-  background: #fff;
-}
-
-.dither-background {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  overflow: hidden;
-  opacity: 0.34;
-}
-
-.brand {
-  position: absolute;
-  z-index: 30;
-  top: 4.89%;
-  left: 2.78%;
-  width: 3.7%;
-  height: 6.86%;
-  color: inherit;
-  outline: none;
-}
-
-.brand img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: brightness(0);
-  transition: opacity 180ms ease;
-}
-
-.brand:hover img,
-.brand:focus-visible img {
-  opacity: 1;
-}
-
-.brand:focus-visible {
-  outline: 1px solid #111;
-  outline-offset: 4px;
+.gallery-frame {
+  background: transparent;
 }
 
 .gallery {
@@ -112,9 +25,9 @@ video {
   transform: translateY(0) scale(1);
   transform-origin: 50% 50%;
   transition:
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 360ms ease,
-    opacity 360ms ease;
+    transform 420ms var(--ease-lift),
+    filter var(--dur-2) ease,
+    opacity var(--dur-2) ease;
   will-change: transform, filter, opacity;
 }
 
@@ -175,7 +88,10 @@ video {
 .media-video {
   z-index: 1;
   opacity: 0;
-  transition: opacity 360ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1), filter 420ms ease;
+  transition:
+    opacity var(--dur-2) ease,
+    transform 600ms var(--ease-lift),
+    filter 420ms ease;
 }
 
 .media-card.has-video .media-video {
@@ -219,6 +135,9 @@ video {
   }
 }
 
+/* --- narrow viewports ------------------------------------------
+   The frame gives up its 16:9 lock and becomes a scrolling column,
+   but keeps the same gutter and header rhythm as the wide layout. */
 @media (max-aspect-ratio: 4 / 5) {
   body {
     display: block;
@@ -226,18 +145,17 @@ video {
     overflow-y: auto;
   }
 
-  .stage {
+  .gallery-frame {
     width: 100%;
+    height: auto;
     min-height: 100svh;
-    aspect-ratio: auto;
     padding: 7.5rem 1rem 2rem;
   }
 
-  .brand {
-    position: absolute;
+  .ensil-header {
     top: 1.4rem;
+    right: 1.25rem;
     left: 1.25rem;
-    width: 3.7rem;
     height: 3.9rem;
   }
 
@@ -284,16 +202,5 @@ video {
   .media-card:active {
     z-index: 20;
     transform: scale(1.025);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }
