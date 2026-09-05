@@ -3,25 +3,26 @@
 /* ================================================================
    Field stage (stage.html)
 
-   The projector output — the fermentation field panorama, full bleed,
-   with nothing on it but the corner labels. Colours are the previous
-   ENSIL build's field palette rather than the archive ink, and the
-   canvas keeps that build's grayscale grade over the green texture.
+   The projector output. Full bleed rather than the 16:9 archive
+   frame, no chrome beyond the corner labels. Colours follow the
+   field itself, which renders the creatures in #002928 on white,
+   so the labels are carried over from the previous ENSIL build
+   rather than taking the archive ink.
    ================================================================ */
 
 [data-page="stage"] {
   --stage-ink: #002928;
   --stage-paper: #fff;
   --stage-key: #58d6c3;
-  --stage-hairline: rgb(255 255 255 / 0.42);
+  --stage-hairline: rgb(0 41 40 / 0.5);
   --stage-chrome-top: 24px;
   --stage-chrome-x: 28px;
   --stage-fs-micro: 8px;
   --stage-fs-nano: 7px;
   --stage-ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
 
-  --page-bg: var(--stage-ink);
-  --page-fg: var(--stage-paper);
+  --page-bg: var(--stage-paper);
+  --page-fg: var(--stage-ink);
 }
 
 /* The stage fills the screen — it is not framed like the archive pages.
@@ -40,41 +41,30 @@
   width: 100%;
   height: 100dvh;
   overflow: hidden;
-  background: var(--stage-ink);
-  color: var(--stage-paper);
+  background: var(--stage-paper);
+  color: var(--stage-ink);
   font-family: var(--font-display);
 }
 
-.panorama-canvas {
+.ecosystem-canvas {
   position: absolute;
   inset: 0;
 }
 
-.panorama-canvas canvas {
+.ecosystem-canvas canvas {
   display: block;
   width: 100%;
   height: 100%;
-  filter: grayscale(1) contrast(1.08) brightness(1.02);
   touch-action: none;
 }
 
-.panorama-loading {
+.ecosystem-loading {
   position: absolute;
-  z-index: 10;
-  inset: 0;
-  display: grid;
-  gap: 14px;
-  background: var(--stage-ink);
+  top: 50%;
+  left: 50%;
   font-size: var(--stage-fs-micro);
-  letter-spacing: 0.12em;
-  place-content: center;
-  text-align: center;
-}
-
-.panorama-loading strong {
-  font-size: clamp(52px, 10vw, 148px);
-  font-weight: 400;
-  letter-spacing: -0.07em;
+  letter-spacing: 0.1em;
+  transform: translate(-50%, -50%);
 }
 
 .stage-page__meta {
