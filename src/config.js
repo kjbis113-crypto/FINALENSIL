@@ -17,7 +17,7 @@ export const MODEL_CONFIGS = {
     particleDensity: 1,
     pointSize: 0.95,
     screenOffsetX: 0.09,
-    frameScale: 0.6,
+    frameScale: 0.63,
   },
   3: {
     path: '/models/NO3.obj',
