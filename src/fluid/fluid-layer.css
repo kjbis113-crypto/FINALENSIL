@@ -1,18 +1,30 @@
 /* ================================================================
    Cursor fluid (src/fluid/fluid-layer.js)
 
-   A green liquid laid over the field canvas, following the pointer
-   on Field 1 and the relayed pointer on the projector stage. It
-   multiplies onto the page: green on the white paper, and the dark
-   ink of the point clouds shows through it rather than being covered.
-   Never intercepts the pointer.
+   Two canvases laid over the projector field, following the pointer
+   relayed from Field 1 — the same veil the previous ENSIL build used
+   site-wide. The fluid itself carries a near-white silver-teal dye and
+   blends with `difference`, so it reads dark on the white paper and
+   flips light over the ink of the point clouds. The tint canvas
+   repaints the fluid's shape in the key colour with `color` blending,
+   pulling the inverted tones toward mint; its strength is painted into
+   the canvas alpha (the page's `.is-ready canvas` opacity rule would
+   override a CSS opacity here). Neither intercepts the pointer.
    ================================================================ */
 
-.fluid-layer {
+.fluid-layer,
+.fluid-layer-tint {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  mix-blend-mode: multiply;
+}
+
+.fluid-layer {
+  mix-blend-mode: difference;
+}
+
+.fluid-layer-tint {
+  mix-blend-mode: color;
 }

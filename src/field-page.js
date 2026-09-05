@@ -10,7 +10,6 @@ import { HabitatWorld } from './field/HabitatWorld';
 import { CREATURE_RECORDS } from './field/creatureRecords';
 import { openFieldLink } from './field/field-link.js';
 import { installStageShortcut } from './stage-window.js';
-import { createFluidLayer, createFluidStroke, createFluidPool } from './fluid/fluid-layer.js';
 
 const mount = document.querySelector('#field-mount');
 const loading = document.querySelector('#field-loading');
@@ -71,9 +70,6 @@ const world = new HabitatWorld({
   },
   onProximity: (id) => {
     if (!selectedId) showReadout(id);
-    // 개체 위에 커서가 멈추면 그 자리에 유체가 고인다 — 스테이지도 같은 개체 위에 고인다
-    if (id) pool.start(() => hoverPointer);
-    else pool.stop();
   },
   onSelect: (id) => {
     pickedThisClick = true;
@@ -92,11 +88,11 @@ const world = new HabitatWorld({
   onImmersiveChange: () => undefined,
 });
 
-/* --- 커서 유체 + 필드 2 로 커서 보내기 ------------------------------------
- * 구버전 ENSIL 의 커서 뒤 유체(FluidVeil)를 필드 위에 깐다 — 원형 솔리드 커서는 빼고 유체만.
- * 같은 커서를 월드 좌표로 필드 2 에 보낸다. 화면 좌표가 아닌 이유: 두 필드의 카메라는 각자
- * 다른 각도로 돌고 개체도 각자 배회하므로, "어느 지형 위 / 어느 개체 위"만이 양쪽에 공통이다.
- * 그 순간의 개체 위치(a)를 함께 보내면 스테이지가 자기 개체 자리로 옮겨 놓는다 (field/cursor-map.js).
+/* --- 필드 2 로 커서 보내기 ------------------------------------------------
+ * 이 화면에는 유체를 그리지 않는다 — 관람객의 커서는 프로젝터(필드 2, stage.js)에서만 액체가 되어 흐른다.
+ * 여기서는 커서를 화면 좌표와 월드 좌표로 함께 보낸다. 스테이지는 카메라를 이쪽과 같은 각도로 맞추므로
+ * (view) 개체에서 먼 곳은 화면 좌표를 그대로 쓰고, 개체 근처에서는 그 순간의 개체 위치(a)와 자기 개체
+ * 위치를 맞춰 "그 개체로부터의 오프셋"으로 옮긴다 (field/cursor-map.js) — 두 필드의 개체는 각자 배회한다.
  *
  *   { type: 'cursor',
  *     p: [x, z, h] | null,   // 커서가 가리킨 월드 점. h 는 개체 표면일 때 그 개체 밑동 위 높이 (지형이면 0). null = 커서 없음
@@ -106,10 +102,7 @@ const world = new HabitatWorld({
  *   { type: 'view', angle }  // 1초마다 — 앰비언트 카메라 각도. 스테이지가 같은 각도로 맞춘다
  */
 const CURSOR_SEND_MS = 33; // 약 30Hz — 릴레이(WS)에 부담 없는 선. 브릿지는 이 봉투를 목업에 보내지 않는다
-const fluid = createFluidLayer({ parent: mount });
-const stroke = createFluidStroke(fluid);
-const pool = createFluidPool(fluid);
-/** 커서의 정규화 화면 좌표(0~1, 위=0) — 개체 위에 멈춘 커서 자리에 유체가 고이는 데 쓴다 */
+/** 커서의 정규화 화면 좌표(0~1, 위=0) — 메시지의 s */
 let hoverPointer = null;
 let lastCursorSentAt = 0;
 let cursorTimer = 0;
@@ -152,15 +145,12 @@ mount.addEventListener('pointermove', (event) => {
     x: (event.clientX - rect.left) / Math.max(1, rect.width),
     y: (event.clientY - rect.top) / Math.max(1, rect.height),
   };
-  stroke.move(hoverPointer.x, hoverPointer.y, event.timeStamp);
   // 캔버스의 핸들러(HabitatWorld.updatePointer)가 먼저 돌아 있어 getPointerField 가 이 이벤트를 반영한다
   scheduleCursor();
 });
 
 mount.addEventListener('pointerleave', () => {
   hoverPointer = null;
-  stroke.reset();
-  pool.stop();
   window.clearTimeout(cursorTimer);
   cursorTimer = 0;
   link?.send({ type: 'cursor', p: null, hover: null });
@@ -264,8 +254,6 @@ mount.addEventListener('pointerup', () => {
 });
 
 window.addEventListener('pagehide', () => {
-  pool.stop();
-  fluid?.dispose();
   world.dispose();
   link?.close();
 });
@@ -273,7 +261,7 @@ window.addEventListener('pagehide', () => {
 // 운영용 — Ctrl+Alt+Shift+O 로 빔프로젝터 스테이지 창을 연다.
 installStageShortcut();
 
-// 검증용 — ?debug=true 면 필드와 유체를 콘솔에 노출한다 (interactive.js 와 같은 규칙)
+// 검증용 — ?debug=true 면 필드를 콘솔에 노출한다 (interactive.js 와 같은 규칙)
 if (new URLSearchParams(window.location.search).get('debug') === 'true') {
-  window.__ENSIL__ = { world, fluid };
+  window.__ENSIL__ = { world };
 }
