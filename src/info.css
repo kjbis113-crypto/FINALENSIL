@@ -22,6 +22,9 @@
 
   --specimen-scale: 100%;
   --specimen-color-opacity: 1;
+  /* Per-specimen nudge inside the shared frame; both the image and its wash follow. */
+  --specimen-shift-x: 0px;
+  --specimen-shift-y: 0px;
 
   /* Figma uses Pretendard Light for Korean body copy; NO.4 Story is
      intentionally overridden below with KoPubWorldDotum Medium. */
@@ -93,7 +96,12 @@
   display: block;
   width: var(--specimen-scale);
   max-width: none;
-  transform: translate(-50%, -50%);
+  transform: translate(calc(-50% + var(--specimen-shift-x)), calc(-50% + var(--specimen-shift-y)));
+}
+
+.info-page[data-creature="2"] {
+  --specimen-shift-x: calc(var(--u) * -1.5); /* a touch left */
+  --specimen-shift-y: calc(var(--u) * 1.5);  /* and down */
 }
 
 .specimen-image {
