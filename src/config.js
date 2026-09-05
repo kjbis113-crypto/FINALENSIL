@@ -76,14 +76,14 @@ export const QUALITY_ORDER = ['low', 'medium', 'high', 'ultra'];
 
 export const DEFAULT_PARAMETERS = {
   pointSize: 1,
-  interactionRadius: 0.44,
-  interactionStrength: 7.2,
+  interactionRadius: 0.6,
+  interactionStrength: 9.6,
   curlStrength: 2,
   curlScale: 1,
   curlSpeed: 0.055,
   returnStrength: 0.65,
-  tangentStrength: 5.2,
-  velocityInfluence: 2.6,
+  tangentStrength: 6.2,
+  velocityInfluence: 3.4,
   damping: 0.85,
   trailLength: 8,
   trailOpacity: 0.36,

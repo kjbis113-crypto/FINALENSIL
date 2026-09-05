@@ -15,6 +15,9 @@ import { ParticleRenderer } from '../particles/ParticleRenderer.js';
 import { ParticleTrails } from '../particles/ParticleTrails.js';
 import { PointerField } from '../interaction/PointerField.js';
 
+/** Idle turntable speed in radians per second — one full turn in about 95s. */
+const SLOW_TURN_RATE = 0.066;
+
 export class Experience {
   constructor(container) {
     this.container = container;
@@ -222,11 +225,14 @@ export class Experience {
       this.particleRenderer.update(elapsed, Math.min(window.devicePixelRatio, this.quality.pixelRatio));
       this.trails.update(this.frame);
 
+      // A slow turntable — one full turn in roughly a minute and a half — under the
+      // existing sway, so the object never reads as a still image. Dragging adds on top.
+      const slowTurn = elapsed * SLOW_TURN_RATE;
       const subtleYaw = Math.sin(elapsed * 0.105) * THREE.MathUtils.degToRad(1.35);
       const subtlePitch = Math.cos(elapsed * 0.081) * THREE.MathUtils.degToRad(0.72);
       const pointerYaw = this.pointer.down ? 0 : (this.pointer.ndc.x || 0) * THREE.MathUtils.degToRad(0.8);
       const pointerPitch = this.pointer.down ? 0 : (this.pointer.ndc.y || 0) * THREE.MathUtils.degToRad(0.45);
-      this.artRoot.rotation.y = this.baseRotation[1] + this.pointer.rotation.y + subtleYaw + pointerYaw;
+      this.artRoot.rotation.y = this.baseRotation[1] + this.pointer.rotation.y + slowTurn + subtleYaw + pointerYaw;
       this.artRoot.rotation.x = this.baseRotation[0] + this.pointer.rotation.x + subtlePitch + pointerPitch;
       this.artRoot.scale.setScalar(this.pointer.zoom);
       this.container.dataset.rotationX = this.pointer.rotation.x.toFixed(3);
