@@ -1,6 +1,7 @@
 import { Experience } from './experience/Experience.js';
 import { revealEncryptedText } from './components/ui/encrypted-text.js';
 import { mountDither } from './dither-mount.jsx';
+import { installStageShortcut } from './stage-window.js';
 
 const sceneElement = document.querySelector('#scene');
 mountDither(document.querySelector('#dither-background'), {
@@ -53,3 +54,6 @@ headerLink.addEventListener('click', openInformation);
 if (new URLSearchParams(window.location.search).get('debug') === 'true') {
   window.__ENSIL__ = experience;
 }
+
+// 운영용 — Ctrl+Alt+Shift+O 로 빔프로젝터 스테이지 창을 연다.
+installStageShortcut();

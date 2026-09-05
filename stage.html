@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-page="stage">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="ENSIL field stage — the shared projector view." />
+    <title>ENSIL / FIELD STAGE</title>
+    <link rel="icon" href="/assets/ensil-logo.png" type="image/png" />
+    <link rel="stylesheet" href="/src/stage.css" />
+  </head>
+  <body>
+    <main class="stage-page">
+      <div class="ecosystem-canvas" id="field-mount">
+        <span class="ecosystem-loading" id="field-loading">ECOLOGIES GENERATING / 00—04</span>
+      </div>
+
+      <div class="stage-page__meta" aria-hidden="true">
+        <span>ENSIL / FIELD STAGE</span>
+        <span><i id="console-dot" data-alive="false"></i><span id="console-label">CONSOLE WAITING</span></span>
+      </div>
+
+      <p class="stage-page__hint" id="fullscreen-hint">CLICK OR PRESS F FOR FULLSCREEN</p>
+    </main>
+
+    <script type="module" src="/src/stage.js"></script>
+  </body>
+</html>

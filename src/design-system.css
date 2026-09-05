@@ -197,6 +197,20 @@ video {
   outline-offset: var(--space-1);
 }
 
+/* --- top index -------------------------------------------------
+   The right-hand group of the header row. Holds the site index and,
+   where a page has one, its contextual link. */
+.ensil-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.ensil-nav-link[aria-current="page"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 /* --- links ----------------------------------------------------- */
 .ensil-nav-link {
   position: relative;

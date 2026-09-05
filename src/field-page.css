@@ -1,0 +1,133 @@
+@import "./design-system.css";
+
+/* ================================================================
+   Field 1 (field.html) — the web-side common field.
+
+   Same engine and terrain as the projector stage, but driven by the
+   pointer. The canvas is full bleed while the chrome rides in the
+   shared 16:9 frame, the way interactive.html does it, so the logo,
+   the index and the gutters land on the same pixels as every other
+   page instead of shifting by the letterbox.
+   ================================================================ */
+
+[data-page="field"] {
+  --field-ink: #002928;
+  --field-paper: #fff;
+  --field-key: #58d6c3;
+  --field-hairline: rgb(0 41 40 / 0.42);
+
+  --page-bg: var(--field-paper);
+  --page-fg: var(--field-ink);
+  --logo-filter: grayscale(1) brightness(0);
+}
+
+.field-canvas {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+}
+
+.field-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.field-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: var(--type-label);
+  letter-spacing: 0.1em;
+  transform: translate(-50%, -50%);
+}
+
+/* The frame is only chrome — the field underneath has to stay reachable. */
+.field-frame {
+  z-index: 5;
+  pointer-events: none;
+}
+
+.field-meta {
+  position: absolute;
+  z-index: 5;
+  bottom: var(--frame-gutter);
+  left: var(--frame-gutter);
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--type-label);
+  letter-spacing: 0.1em;
+}
+
+.field-meta i {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.8em;
+  border-radius: 50%;
+  background: var(--field-hairline);
+}
+
+.field-meta i[data-alive="true"] {
+  background: var(--field-key);
+}
+
+/* --- signal readout --------------------------------------------
+   Hovering an organism names it; clicking holds it and offers the
+   archive record. */
+.field-readout {
+  position: absolute;
+  z-index: 6;
+  right: var(--frame-gutter);
+  bottom: var(--frame-gutter);
+  display: grid;
+  gap: var(--space-1);
+  justify-items: end;
+  opacity: 0;
+  text-align: right;
+  transform: translateY(var(--space-2));
+  transition:
+    opacity var(--dur-2) ease,
+    transform var(--dur-2) var(--ease-out);
+}
+
+.field-readout[data-open="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.field-readout[data-open="true"] .ensil-nav-link {
+  pointer-events: auto;
+}
+
+.field-readout__code {
+  font-size: calc(var(--u) * 3.2);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.field-readout__sensor {
+  font-size: var(--type-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.field-hint {
+  position: absolute;
+  bottom: var(--frame-gutter);
+  left: 50%;
+  z-index: 5;
+  margin: 0;
+  font-size: var(--type-label);
+  letter-spacing: 0.09em;
+  opacity: 0.45;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 760px) {
+  .field-hint {
+    display: none;
+  }
+}

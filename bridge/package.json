@@ -1,0 +1,14 @@
+{
+  "name": "ensil-bridge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "전시장 로컬 허브 — ESP32 목업 ↔ 웹 WS 릴레이 + 빌드된 사이트 정적 서빙. 의존성은 ws 하나뿐(네이티브 빌드 없음).",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "demo": "node index.js --demo"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

@@ -31,6 +31,24 @@ so a value lands on the same pixel on the gallery, the field and the archive.
 Page themes are selected with `data-page` on `<html>`: `gallery` (paper), `field` (void) and
 the default archive (ink).
 
+## Field stage (projector)
+
+`stage.html` is the shared 3D field shown on the beam projector. Press **Ctrl+Alt+Shift+O**
+on any archive page (gallery, field or entry) to open it — an operator shortcut a visitor
+will not hit by accident. It always opens as a standalone popup rather than a tab, because a
+background tab suspends `requestAnimationFrame` and freezes the field. When the Window
+Management API is granted, the window lands on the second screen; otherwise drag it across
+and click the stage to go fullscreen (`F` toggles it too).
+
+The engine is carried over from the previous ENSIL build unchanged — `src/field/` holds
+`HabitatWorld` and its systems, and only the React wrapper was rewritten as plain DOM in
+`src/stage.js`. The creatures load from `public/models/eo-00*.glb` (meshopt-compressed, so
+they go through `src/field/gltf.ts` and the runtime decoder in `public/decoders/`).
+
+`src/field/field-link.js` carries `focus` / `pulse` / `snapshot` messages between a console
+window and the stage over `BroadcastChannel`, or over a WebSocket relay when
+`VITE_FIELD_LINK_URL` is set. The corner label reads `CONSOLE WAITING` until a peer appears.
+
 ## Interaction
 
 The original four gallery videos remain the main-page previews. The transparent area around each object is not clickable; selecting the visible object opens `interactive.html?id=1` through `id=4`.
