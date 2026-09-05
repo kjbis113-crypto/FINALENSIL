@@ -113,7 +113,7 @@
 
 .field-readout__sensor {
   font-size: var(--type-index);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-text); /* same tracking as the record link beneath it */
   text-transform: uppercase;
   opacity: 0.62;
 }

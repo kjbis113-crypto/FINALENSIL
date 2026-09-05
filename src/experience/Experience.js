@@ -65,7 +65,7 @@ export class Experience {
   async initialize() {
     this.modelLoader = new ModelLoader(this.modelConfig, (progress, label) => this.setProgress(progress, label));
     this.model = await this.modelLoader.load();
-    this.camera.frame(this.model.bounds);
+    this.camera.frame(this.model.bounds, this.modelConfig.frameScale ?? 1);
     this.updateArtLayout();
 
     const surfaceData = await this.modelLoader.sampleSurface(this.model, this.quality.textureSize);
