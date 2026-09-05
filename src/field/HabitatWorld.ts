@@ -22,6 +22,12 @@ export type HabitatWorldOptions = {
   mode: 'field' | 'single';
   /** 스테이지(프로젝터) — 1인칭 진입이 없을 때 카메라가 필드 중심을 천천히 돈다 */
   ambient?: boolean;
+  /**
+   * 절차적 지형 위에 폐허 GLB(ensil-green-circuit-ruins)를 덮을지.
+   * 이 모델이 로드되면 setFieldFallbackVisible(false) 로 절차적 지형·등고선·
+   * 신호선이 전부 숨겨진다. false 면 절차적 지형만 남는다.
+   */
+  referenceLandscape?: boolean;
   selectedId?: string | null;
   observation?: boolean;
   paused?: boolean;
@@ -229,7 +235,7 @@ export class HabitatWorld {
     if (options.mode === 'field') {
       this.commonLandscape = buildCommonFieldLandscape(this.scene, this.mobile);
       this.terrains.push(this.commonLandscape.terrain);
-      this.loadFieldReferenceLandscape();
+      if (options.referenceLandscape !== false) this.loadFieldReferenceLandscape();
     }
     this.buildRuntimes();
     this.bindEvents();
