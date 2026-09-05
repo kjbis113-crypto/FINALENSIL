@@ -24,6 +24,15 @@ const FIELD_LAYERS = 1;
 const FIELD_INK = new THREE.Color(0x002928);
 const FIELD_POINT_SIZE_BOOST = 10;
 
+/**
+ * 아카이브는 개체를 정면에서 보지만 필드는 위에서 내려다본다. MODEL_CONFIGS 의 rotation 은
+ * 아카이브 기준이라, 필드에서 눕혀야 하는 개체는 여기서 한 번 더 돌린다.
+ * NO.4(전구 군집)는 정면 기준으로 세워져 있어 X 축 -90° 로 갓이 위를 보게 눕힌다.
+ */
+const FIELD_ROTATION = {
+  4: [-Math.PI / 2, 0, 0],
+};
+
 /** 아카이브 프래그먼트 셰이더의 필드 변형 — 같은 감쇠·열감, 색만 잉크. */
 const fieldFragmentShader = particlesFragmentShader
   .replace('uniform float uOpacity;', 'uniform float uOpacity;\nuniform vec3 uColor;')
@@ -73,11 +82,16 @@ export async function createParticleCreature({
   const root = new THREE.Group();
   root.name = 'particle-creature';
   const inner = new THREE.Group();
-  const maxDimension = Math.max(model.size.x, model.size.y, model.size.z) || 1;
+  inner.add(model.interactionRoot, points.root);
+  inner.rotation.fromArray(FIELD_ROTATION[modelIndex] ?? [0, 0, 0]);
+  // Bounds after the field rotation, so the fit and the ground contact follow the turned body.
+  inner.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(model.interactionRoot);
+  const extent = bounds.getSize(new THREE.Vector3());
+  const maxDimension = Math.max(extent.x, extent.y, extent.z) || 1;
   const scale = size / maxDimension;
   inner.scale.setScalar(scale);
-  inner.position.y = -model.bounds.min.y * scale;
-  inner.add(model.interactionRoot, points.root);
+  inner.position.y = -bounds.min.y * scale;
   root.add(inner);
 
   // The simulation wants a pointer in model space; we synthesise one that circles the

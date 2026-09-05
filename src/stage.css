@@ -74,7 +74,7 @@
   right: var(--stage-chrome-x);
   left: var(--stage-chrome-x);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   font-size: var(--stage-fs-micro);
   letter-spacing: 0.1em;
   pointer-events: none;

@@ -18,7 +18,6 @@ const mount = document.querySelector('#field-mount');
 const loadingLabel = document.querySelector('#field-loading');
 const consoleDot = document.querySelector('#console-dot');
 const consoleLabel = document.querySelector('#console-label');
-const hint = document.querySelector('#fullscreen-hint');
 const page = document.querySelector('.stage-page');
 
 let lastSnapshotAt = 0;
@@ -100,10 +99,6 @@ window.addEventListener('keydown', (event) => {
     event.preventDefault();
     toggleFullscreen();
   }
-});
-
-document.addEventListener('fullscreenchange', () => {
-  hint.hidden = Boolean(document.fullscreenElement);
 });
 
 window.addEventListener('pagehide', () => {

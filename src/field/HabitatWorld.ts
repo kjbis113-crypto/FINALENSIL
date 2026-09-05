@@ -319,6 +319,17 @@ export class HabitatWorld {
       };
       const systems = buildHabitatSystems(context);
       if (this.options.mode === 'single') systems.annotations.visible = false;
+      if (this.options.mode === 'field') {
+        // 필드(전시)에는 개체 라벨 스프라이트를 아예 두지 않는다 — updateHabitatSystems 가
+        // 매 프레임 visible 을 다시 켜므로 숨기는 것으로는 부족하다.
+        systems.annotations.children.forEach((child) => {
+          if (child instanceof THREE.Sprite) {
+            child.material.map?.dispose();
+            child.material.dispose();
+          }
+        });
+        systems.annotations.clear();
+      }
       systems.terrain.mesh.userData.biomeId = record.id;
       if (this.options.mode === 'field') {
         systems.terrain.mesh.visible = false;

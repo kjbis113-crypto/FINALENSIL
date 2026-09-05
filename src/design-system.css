@@ -212,6 +212,11 @@ canvas {
   gap: var(--space-4);
 }
 
+/* The index reads a step smaller than body labels. */
+.ensil-nav .ensil-nav-link {
+  font-size: calc(var(--u) * 0.72); /* 13.8px */
+}
+
 .ensil-nav-link[aria-current="page"] {
   opacity: 0.45;
   pointer-events: none;
