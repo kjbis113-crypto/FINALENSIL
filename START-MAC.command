@@ -9,14 +9,18 @@ if [ ! -f dist/index.html ]; then
   exit 1
 fi
 
-# 이 기기의 LAN 주소 — 다른 기기(빔프/아이맥)에서 열 주소
-IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "")
+# 이 기기의 LAN 주소 전부 — 다른 기기(빔프)에서 열 주소. 허브 없이 '인터넷 공유'로 와이파이를
+# 만들면 주소가 en0 이 아니라 bridge100 에 붙으므로 인터페이스를 가리지 않고 모두 찍는다.
+IPS=$(ifconfig 2>/dev/null | awk '/inet / && $2 != "127.0.0.1" { print $2 }')
 
 echo "======================================================"
 echo " ENSIL 브릿지"
 echo
 echo "  이 기기         http://localhost:8080/"
-[ -n "$IP" ] && echo "  다른 기기       http://$IP:8080/"
+for ip in $IPS; do
+  echo "  다른 기기       http://$ip:8080/"
+done
+[ -z "$IPS" ] && echo "  다른 기기       (아직 망에 붙지 않음 — 와이파이/인터넷 공유를 켠 뒤 이 창을 다시 여세요)"
 echo
 echo "  필드1 (웹)      /            "
 echo "  필드2 (빔프)    /stage.html  ← 또는 아무 페이지에서 control+option+shift+O"
